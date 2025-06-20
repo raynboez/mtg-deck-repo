@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Users', function (Blueprint $table) {
-            $table->integer('user_id', true);
-            $table->string('username', 50)->unique('username');
-            $table->timestamp('created_at')->nullable()->useCurrent();
-            $table->timestamp('last_login')->nullable();
+        Schema::table('decks', function (Blueprint $table) {
+            $table->foreign(['user_id'], 'fk_user_id')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Users');
+        Schema::table('decks', function (Blueprint $table) {
+            $table->dropForeign('fk_user_id');
+        });
     }
 };

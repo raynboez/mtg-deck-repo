@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Deck_Cards', function (Blueprint $table) {
+        Schema::create('deck_cards', function (Blueprint $table) {
             $table->integer('deck_id');
-            $table->string('card_id', 50)->index('card_id');
+            $table->integer('card_id');
             $table->boolean('is_commander')->nullable()->default(false);
             $table->boolean('is_companion')->nullable()->default(false);
             $table->boolean('is_main_deck')->default(true);
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Deck_Cards');
+        Schema::dropIfExists('deck_cards');
     }
 };

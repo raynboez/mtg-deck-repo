@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Cards', function (Blueprint $table) {
-            $table->string('card_id', 50)->primary();
+        Schema::create('cards', function (Blueprint $table) {
+            $table->integer('card_id', true);
             $table->string('card_name', 100);
             $table->string('mana_cost', 50)->nullable();
             $table->decimal('cmc', 4);
@@ -23,6 +23,11 @@ return new class extends Migration
             $table->string('colours', 20)->nullable();
             $table->string('colour_identity', 20)->nullable();
             $table->string('image_url')->nullable();
+            $table->string('scryfall_uri')->nullable();
+            $table->string('set', 100)->nullable();
+            $table->string('collector_number', 100)->nullable();
+            $table->boolean('is_gamechanger')->nullable();
+            $table->string('oracle_id')->nullable();
         });
     }
 
@@ -31,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Cards');
+        Schema::dropIfExists('cards');
     }
 };

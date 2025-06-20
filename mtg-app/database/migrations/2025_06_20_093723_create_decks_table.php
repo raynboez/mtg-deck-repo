@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Decks', function (Blueprint $table) {
+        Schema::create('decks', function (Blueprint $table) {
             $table->integer('deck_id', true);
-            $table->integer('user_id')->index('user_id');
+            $table->unsignedBigInteger('user_id')->nullable()->index('fk_user_id');
             $table->string('deck_name', 100);
             $table->text('description')->nullable();
             $table->text('colour_identity')->nullable();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Decks');
+        Schema::dropIfExists('decks');
     }
 };
