@@ -14,7 +14,18 @@ setup mysql with login + blank db
 
 composer global require laravel/installer
 
+composer update
+
 npm install
 
 npm run build
 
+php artisan migrate
+
+php artisan key:generate
+
+RUNNING
+
+npm run dev
+
+php artisan serve
