@@ -23,7 +23,7 @@ export type AppPageProps<T extends Record<string, unknown> = Record<string, unkn
     auth: Auth;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
-};
+}
 
 export interface User {
     id: number;
@@ -33,6 +33,13 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    decks?: Deck[];
 }
+
+export interface Deck {
+  deck_name: string;
+  deck_id: number;
+  href: string;
+};
 
 export type BreadcrumbItemType = BreadcrumbItem;

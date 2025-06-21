@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeckImportController;
+use App\Http\Controllers\DeckController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -12,5 +13,7 @@ Route::group(['middleware' => ['web']], function()
 {
 
     Route::post('/decks/import', [DeckImportController::class, 'import']);
-
+    Route::get('/decks/user', [DeckController::class, 'userDecks']);
+    Route::get('/decks/user/{userId}', [DeckController::class, 'userDecksById']);
+    Route::get('/users', [DeckController::class, 'getUsers']);
 });
