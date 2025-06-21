@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArmyImportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeckImportController;
@@ -45,4 +46,6 @@ Route::group(['middleware' => ['web']], function()
         Route::get('/season/{seasonId}', [BanController::class, 'getBannedCardList']);
         Route::post('/add', [BanController::class, 'addBannedCard']);
     });
+
+    Route::post('/army/import', [ArmyImportController::class, 'import']);
 });
