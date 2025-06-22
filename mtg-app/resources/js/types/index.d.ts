@@ -37,9 +37,24 @@ export interface User {
 }
 
 export interface Deck {
-  deck_name: string;
-  deck_id: number;
-  href: string;
+    deck_name: string;
+    deck_id: number;
+    href: string;
+};
+
+export interface Card {
+    bigImage: string;
+    flavour_text: string;
+    image: string;
+    oracle_text: string;
+    name: string;
+    number: number;
+};
+
+export interface PageProps {
+    deck: {
+      id: number;
+    }
 };
 
 export type BreadcrumbItemType = BreadcrumbItem;

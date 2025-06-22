@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Deck;
+use Inertia\Inertia;
+
 class DeckController extends Controller
 {        
     public function userDecks(Request $request)
@@ -23,6 +26,15 @@ class DeckController extends Controller
     public function getDeck(Request $request)
     {
 
+    }
+
+    public function show($id)
+    {
+        $deck = Deck::findOrFail($id);
+        
+        return Inertia::render('Deck', [
+            'deck' => $deck
+        ]);
     }
 
     public function userDecksById(Request $request, $userId)

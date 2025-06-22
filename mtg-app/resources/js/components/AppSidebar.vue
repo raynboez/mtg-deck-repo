@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, User, Deck } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, ChevronRight, ChevronDown } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, ChevronRight} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import axios from 'axios';
 </script>
@@ -87,7 +87,7 @@ export default {
             
             return user.decks.map(deck => ({
                 title: deck.deck_name,
-                href: `/dashboard/deck/${deck.deck_id}`,
+                href: `/deck/${deck.deck_id}`,
                 icon: LayoutGrid,
             }));
         }
