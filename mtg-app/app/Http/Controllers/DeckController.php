@@ -29,9 +29,8 @@ class DeckController extends Controller
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
         $cardArr = array();
         foreach($deck as $card){
-            Log::info($card->card_id);
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
-            Log::info(json_encode($cardData));
+            $cardData->quantity = $card->quantity;
             array_push($cardArr, $cardData);
         }
 
@@ -40,7 +39,7 @@ class DeckController extends Controller
                 'deck' => $deckInfo,
                 'cards' => $cardArr
             ]
-            );
+        );
     }
 
     public function show($id)

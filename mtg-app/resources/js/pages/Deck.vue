@@ -7,14 +7,14 @@ import AppLayout from '@/layouts/AppLayout.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Deck',
+        href: '/deck/${deckId}',
     },
 ];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Deck" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">      
