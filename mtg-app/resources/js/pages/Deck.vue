@@ -2,17 +2,8 @@
 import DeckViewer from '../components/DeckViewer.vue'
 import { type BreadcrumbItem } from '@/types';
 import axios from 'axios';
-interface Deck {
-  id: number
-  title: string
-  // other properties
-}
-
-interface Props {
-  deck: Deck
-}
-
-const props = defineProps<Props>()
+import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -45,7 +36,9 @@ export default {
   components: {
     DeckViewer
   },
-
+  props: {
+    deck_id: Number,
+  },
   data() {
     return {
       deck: null,
@@ -53,8 +46,8 @@ export default {
     }
   },
 
-  created() {
-    this.fetchDeck(props.deck.id)
+  async created() {
+    await this.fetchDeck(this.deck_id)
   },
 
   methods: {
