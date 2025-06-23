@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Model;
 class DeckCard extends Model
 {
 	protected $table = 'deck_cards';
+
+	protected $primaryKey = 'primKey';
 	public $incrementing = false;
 	public $timestamps = false;
 

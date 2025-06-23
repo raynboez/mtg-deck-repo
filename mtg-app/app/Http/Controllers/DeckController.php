@@ -23,17 +23,32 @@ class DeckController extends Controller
         return response()->json($users);
     }
 
-    public function getDeck(Request $request)
+    public function getDeck(Request $request, $deckId)
     {
+        $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
+        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $cardArr = array();
+        foreach($deck as $card){
+            Log::info($card->card_id);
+            $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
+            Log::info(json_encode($cardData));
+            array_push($cardArr, $cardData);
+        }
 
+        return response()->json(
+            [
+                'deck' => $deckInfo,
+                'cards' => $cardArr
+            ]
+            );
     }
 
     public function show($id)
     {
         $deck = Deck::findOrFail($id);
-        
+        $id = $deck->deck_id;
         return Inertia::render('Deck', [
-            'deck' => $deck
+            'deck_id' => $id
         ]);
     }
 

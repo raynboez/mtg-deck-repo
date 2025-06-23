@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('deck_cards', function (Blueprint $table) {
+            $table->integer('prim_key', true);
             $table->integer('deck_id');
             $table->integer('card_id');
             $table->boolean('is_commander')->nullable()->default(false);
@@ -19,8 +20,7 @@ return new class extends Migration
             $table->boolean('is_main_deck')->default(true);
             $table->boolean('is_sideboard')->nullable()->default(false);
             $table->integer('quantity')->nullable()->default(1);
-
-            $table->primary(['deck_id', 'card_id', 'is_main_deck']);
+            $table->primary(['prim_key']);
         });
     }
 
