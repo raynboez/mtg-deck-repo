@@ -2,8 +2,10 @@
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
+import { RefreshCw } from 'lucide-vue-next';
 
 interface Card {
+  card_id: number;
   card_name: string;
   mana_cost: string;
   cmc: number;
@@ -17,8 +19,11 @@ interface Card {
   collector_number: string;
   is_gamechanger: boolean;
   oracle_id: string;
+  face_card_id: number;
+  reverse_card_id: number;
   quantity: number;
 }
+
 
 const props = defineProps<{
   deck: {
@@ -29,44 +34,54 @@ const props = defineProps<{
     power_level: number;
   };
   cards: Card[];
+  reverse: Card[];
+  commanders: number[] | null;
+  exportText: string;
 }>();
+
 
 const hoveredCard = ref<Card | null>(null);
 const isMounted = ref(false);
 const popperInstance = ref<ReturnType<typeof createPopper> | null>(null);
 const popperElement = ref<HTMLElement | null>(null);
+const showingReverse = ref<Record<number, boolean>>({});
+
 
 const CARD_TYPE_ORDER = {
-  'singular': [
+  singular: [
+    'Commander',
+    'Companion',
     'Creature',
-  'Artifact',
-  'Enchantment',
-  'Instant',
-  'Sorcery',
-  'Planeswalker',
-  'Battle',
-  'Land'
+    'Artifact',
+    'Enchantment',
+    'Instant',
+    'Sorcery',
+    'Planeswalker',
+    'Battle',
+    'Land'
   ],
-  'plural':[
-  'Creatures',
-  'Artifacts',
-  'Enchantments',
-  'Instants',
-  'Sorceries',
-  'Planeswalkers',
-  'Battles',
-  'Lands'
+  plural: [
+    'Commander',
+    'Companion',
+    'Creatures',
+    'Artifacts',
+    'Enchantments',
+    'Instants',
+    'Sorceries',
+    'Planeswalkers',
+    'Battles',
+    'Lands'
   ]
 };
 
-const getPrimaryCardType = (typeLine: string): string => {
-  for (const type of CARD_TYPE_ORDER.singular) {
-    if (typeLine.includes(type)) {
-      return type;
-    }
-  }
-  return 'Other';
-};
+
+const reverseCardsMap = computed(() => {
+  const map: Record<number, Card> = {};
+  props.reverse.forEach(reverse => {
+    map[reverse.face_card_id] = reverse;
+  });
+  return map;
+});
 
 const groupedCards = computed(() => {
   const groups: Record<string, { cards: Card[], totalQuantity: number }> = {};
@@ -77,7 +92,13 @@ const groupedCards = computed(() => {
   groups['Other'] = { cards: [], totalQuantity: 0 };
   
   props.cards.forEach(card => {
-    const type = getPrimaryCardType(card.type_line);
+    var type = '';
+    if(props.commanders.includes(card.card_id)){
+      type = CARD_TYPE_ORDER.singular[0];
+    } else {
+      type = getPrimaryCardType(card.type_line);
+    }
+    
     const group = groups[type] || groups['Other'];
     group.cards.push(card);
     group.totalQuantity += card.quantity;
@@ -86,22 +107,50 @@ const groupedCards = computed(() => {
   return groups;
 });
 
-
-onMounted(() => {
-  isMounted.value = true;
-});
-
-onUnmounted(() => {
-  if (popperInstance.value) {
-    popperInstance.value.destroy();
+const getPrimaryCardType = (typeLine: string): string => {
+  for (const type of CARD_TYPE_ORDER.singular) {
+    if (typeLine.includes(type)) {
+      return type;
+    }
   }
-  isMounted.value = false;
-});
+  return 'Other';
+};
+
+const toggleCardReverse = (card: Card) => {
+  if (reverseCardsMap.value[card.card_id]) {
+    showingReverse.value = {
+      ...showingReverse.value,
+      [card.card_id]: !showingReverse.value[card.card_id]
+    };    
+    if (hoveredCard.value) {
+        hoveredCard.value = getCardDisplayData(card);
+    }
+  }
+};
+
+const getCardImage = (card: Card): string => {
+  const reverseCard = reverseCardsMap.value[card.card_id];
+  if (showingReverse.value[card.card_id] && reverseCard?.image_url) {
+    return reverseCard.image_url;
+  }
+  return card.image_url || card_back;
+};
+
+const getCardDisplayData = (card: Card): Card => {
+  const reverseCard = reverseCardsMap.value[card.card_id];
+  if (showingReverse.value[card.card_id] && reverseCard) {
+    return {
+      ...reverseCard,
+      quantity: card.quantity
+    };
+  }
+  return card;
+};
 
 const handleMouseEnter = async (card: Card, event: MouseEvent) => {
   if (!isMounted.value) return;
   
-  hoveredCard.value = card;
+  hoveredCard.value = getCardDisplayData(card);
   
   await nextTick();
   
@@ -157,16 +206,23 @@ const handleMouseLeave = () => {
   }
 };
 
+onMounted(() => {
+  isMounted.value = true;
+});
 
+onUnmounted(() => {
+  if (popperInstance.value) {
+    popperInstance.value.destroy();
+  }
+  isMounted.value = false;
+});
 
 </script>
-
 <template>
   <div class="deck-viewer">
     <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }}</h1>
     <p class="text-gray-600 mb-6">{{ deck.description }}</p>
-    
-   
+
     <div v-for="type in CARD_TYPE_ORDER.singular" :key="type">    
       <div v-if="groupedCards[type] && groupedCards[type].cards.length > 0" class="mb-8">
         <h2 class="text-xl font-semibold mb-4 border-b pb-2">{{ CARD_TYPE_ORDER.plural[CARD_TYPE_ORDER.singular.indexOf(type)] }} ({{ groupedCards[type].totalQuantity }})</h2>
@@ -175,13 +231,14 @@ const handleMouseLeave = () => {
             v-for="card in groupedCards[type].cards" 
             :key="`${card.oracle_id}-${card.collector_number}`"
             class="card-item relative"
-            @mouseenter="handleMouseEnter(card, $event)"
+            @mouseenter="handleMouseEnter(getCardDisplayData(card), $event)"
             @mouseleave="handleMouseLeave"
+            @click="toggleCardReverse(card)"
           >
             <img 
-              :src="card.image_url || card_back" 
+              :src="getCardImage(card)" 
               :alt="card.card_name"
-              class="w-full rounded-xl border border-background hover:border-blue-500 transition-colors"
+              class="w-full rounded-xl border border-background hover:border-blue-500 transition-colors cursor-pointer"
               loading="lazy"
             />
             <div v-if="card.quantity > 1" class="absolute bottom-1 left-1 bg-gray-200 text-black text-xs font-semibold px-2 py-1 rounded-md">
@@ -189,6 +246,12 @@ const handleMouseLeave = () => {
             </div>
             <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 rounded">
               GC
+            </div>
+            <!-- Flip indicator for reversible cards -->
+            <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 text-white text-xs px-1 rounded">
+              <component 
+              :is="RefreshCw"               
+            />
             </div>
           </div>
         </div>
@@ -202,13 +265,14 @@ const handleMouseLeave = () => {
           v-for="card in groupedCards['Other'].cards" 
           :key="`${card.oracle_id}-${card.collector_number}`"
           class="card-item relative"
-          @mouseenter="handleMouseEnter(card, $event)"
+          @mouseenter="handleMouseEnter(getCardDisplayData(card), $event)"
           @mouseleave="handleMouseLeave"
+          @click="toggleCardReverse(card)"
         >
           <img 
-            :src="card.image_url || card_back" 
+            :src="getCardImage(card)" 
             :alt="card.card_name"
-            class="w-full rounded-xl border border-background hover:border-blue-500 transition-colors"
+            class="w-full rounded-xl border border-background hover:border-blue-500 transition-colors cursor-pointer"
             loading="lazy"
           />
           <div v-if="card.quantity > 1" class="absolute bottom-1 left-1 bg-gray-200 text-black text-xs font-semibold px-2 py-1 rounded-md">
@@ -217,9 +281,15 @@ const handleMouseLeave = () => {
           <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 rounded">
             GC
           </div>
+          <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
+            <component 
+              :is="RefreshCw"               
+            />
+          </div>
         </div>
       </div>
     </div>
+    
     <div 
       v-if="hoveredCard && isMounted"
       ref="popperElement"

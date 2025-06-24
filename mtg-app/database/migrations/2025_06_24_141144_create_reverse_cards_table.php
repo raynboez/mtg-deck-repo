@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cards', function (Blueprint $table) {
+        Schema::create('reverse_cards', function (Blueprint $table) {
             $table->integer('card_id', true);
+            $table->integer('face_card_id');
             $table->string('card_name', 100);
             $table->string('mana_cost', 50)->nullable();
             $table->decimal('cmc', 4);
@@ -28,7 +29,7 @@ return new class extends Migration
             $table->string('collector_number', 100)->nullable();
             $table->boolean('is_gamechanger')->nullable();
             $table->string('oracle_id')->nullable();
-            $table->string('reverse_card_id')->nullable();
+             $table->primary(['card_id']);
         });
     }
 
@@ -37,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cards');
+        Schema::dropIfExists('reverse_cards');
     }
 };

@@ -27,17 +27,26 @@ class DeckController extends Controller
     {
         $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
         $cardArr = array();
+        $reverse = array();
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
+            if($cardData->reverse_card_id)
+            {   
+                $reverseCardData = DB::table('reverse_cards')->where('face_card_id', $card->card_id)->first();
+                array_push($reverse, $reverseCardData);
+            }
             array_push($cardArr, $cardData);
         }
 
         return response()->json(
             [
                 'deck' => $deckInfo,
-                'cards' => $cardArr
+                'cards' => $cardArr,
+                'reverse' => $reverse,
+                'commanders' => json_encode($commanders)
             ]
         );
     }
@@ -53,9 +62,22 @@ class DeckController extends Controller
 
     public function userDecksById(Request $request, $userId)
     {
-        Log::info($userId);
         $decks = DB::table('decks')->where('user_id', $userId)->get();
-        Log::info($decks);
         return response()->json($decks);
+    }
+
+
+    //TTS api response (no point getting this working)
+    public function getDeckJson(Request $request, $deckId)
+    {
+        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $cardArr = array();
+        foreach($deck as $card){
+            $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
+            $cardData->quantity = $card->quantity;
+            array_push($cardArr, $cardData);
+        }
+
+        return response()->json($cardArr);
     }
 }

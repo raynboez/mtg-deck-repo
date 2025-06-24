@@ -6,13 +6,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class Card
+ * Class ReverseCard
  * 
  * @property int $card_id
+ * @property int $face_card_id
  * @property string $card_name
  * @property string|null $mana_cost
  * @property float $cmc
@@ -28,25 +28,25 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $collector_number
  * @property bool|null $is_gamechanger
  * @property string|null $oracle_id
- * @property string|null $reverse_card_id
  * 
- * @property Collection|Deck[] $decks
- * @property Collection|ReverseCard[] $reverse_cards
+ * @property Card $card
  *
  * @package App\Models
  */
-class Card extends Model
+class ReverseCard extends Model
 {
-	protected $table = 'cards';
+	protected $table = 'reverse_cards';
 	protected $primaryKey = 'card_id';
 	public $timestamps = false;
 
 	protected $casts = [
+		'face_card_id' => 'int',
 		'cmc' => 'float',
 		'is_gamechanger' => 'bool'
 	];
 
 	protected $fillable = [
+		'face_card_id',
 		'card_name',
 		'mana_cost',
 		'cmc',
@@ -61,18 +61,11 @@ class Card extends Model
 		'set',
 		'collector_number',
 		'is_gamechanger',
-		'oracle_id',
-		'reverse_card_id'
+		'oracle_id'
 	];
 
-	public function decks()
+	public function card()
 	{
-		return $this->belongsToMany(Deck::class, 'deck_cards')
-					->withPivot('prim_key', 'is_commander', 'is_companion', 'is_main_deck', 'is_sideboard', 'quantity');
-	}
-
-	public function reverse_cards()
-	{
-		return $this->hasMany(ReverseCard::class, 'face_card_id');
+		return $this->belongsTo(Card::class, 'face_card_id');
 	}
 }
