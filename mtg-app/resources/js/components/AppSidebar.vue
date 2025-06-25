@@ -8,6 +8,7 @@ import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, ChevronRight} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import axios from 'axios';
+import Separator from './ui/separator/Separator.vue';
 </script>
 <script lang="ts">
 
@@ -116,7 +117,7 @@ const footerNavItems: NavItem[] = [
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
+                    <SidebarMenuButton class="headerButton" size="lg" as-child>
                         <Link :href="route('deck_import')">
                             <AppLogo />
                         </Link>
@@ -124,7 +125,8 @@ const footerNavItems: NavItem[] = [
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
-
+        <Separator/>
+        <span class="flex flex-col p-2 mx-auto">Imported Decks</span>
         <SidebarContent>            
             <div v-for="user in users" :key="user.id" class="user-section">
                 <SidebarMenuItem @click="toggleUser(user.id)">
@@ -172,4 +174,37 @@ const footerNavItems: NavItem[] = [
   transform: translateY(-10px);
   opacity: 0;
 }
+
+
+/* Submit Button */
+.headerButton {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--chart-2), var(--primary));
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.headerButton:hover {
+  background: linear-gradient(135deg, var(--chart-3), var(--primary));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.headerButton:active {
+  transform: translateY(0);
+}
+
+.headerButton:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 </style>

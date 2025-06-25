@@ -10,9 +10,9 @@ class DeckExportService
     {
         $exportLines = [];
         
-        // Add About section with deck name
+        // Add About section
         $exportLines[] = "About";
-        $exportLines[] = "Name $deck->deck_name";
+        $exportLines[] = "Name " . $deck->name;
         $exportLines[] = ""; // Empty line
 
         // Load cards with pivot data if not already loaded
@@ -20,7 +20,7 @@ class DeckExportService
             $deck->load('cards');
         }
 
-        // Process commanders first
+        // Process commanders
         $commanders = $deck->cards->filter(function ($card) {
             return $card->pivot->is_commander ?? false;
         });
@@ -36,26 +36,23 @@ class DeckExportService
             $exportLines[] = ""; // Empty line after commanders
         }
 
-        // Group non-commander cards by name and set
+        // Process main deck cards
         $mainDeckCards = $deck->cards->reject(function ($card) {
             return $card->pivot->is_commander ?? false;
         });
 
-        $cardGroups = $mainDeckCards->groupBy(function ($card) {
-            return $card->name . '|' . ($card->set_code ?? '');
+        $exportLines[] = "Deck";
+        
+        // Sort cards alphabetically
+        $sortedCards = $mainDeckCards->sortBy(function ($card) {
+            return $card->name;
         });
 
-        // Add Deck section header
-        $exportLines[] = "Deck";
-
-        // Process main deck cards
-        foreach ($cardGroups as $group) {
-            $card = $group->first();
-            $totalQuantity = $group->sum(function ($card) {
-                return $card->pivot->quantity ?? 1;
-            });
-            
-            $exportLines[] = $this->formatCardLine($totalQuantity, $card);
+        foreach ($sortedCards as $card) {
+            $exportLines[] = $this->formatCardLine(
+                $card->pivot->quantity ?? 1,
+                $card
+            );
         }
 
         return implode("\n", $exportLines);
@@ -64,9 +61,9 @@ class DeckExportService
     protected function formatCardLine(int $quantity, Card $card): string
     {
         $setInfo = '';
-        if ($card->set_code && $card->collector_number) {
-            $setInfo = " ({$card->set_code}) {$card->collector_number}";
+        if ($card->set && $card->collector_number) {
+            $setInfo = " ({$card->set}) {$card->collector_number}";
         }
-        return "{$quantity} {$card->name}{$setInfo}";
+        return "{$quantity} {$card->card_name}{$setInfo}";
     }
 }

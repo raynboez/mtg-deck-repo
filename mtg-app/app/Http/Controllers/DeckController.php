@@ -91,6 +91,6 @@ class DeckController extends Controller
         $deck = Deck::findOrFail($deck_id);
         $exportText = app(DeckExportService::class)->generateExportText($deck);      
         
-        return $exportText;
+        return response()->make($exportText, 200, ['Content-Type' => 'text/plain']);
     }
 }

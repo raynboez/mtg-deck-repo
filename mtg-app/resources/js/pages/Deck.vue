@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Deck',
+        title: 'Deck View',
         href: '/deck/${deckId}',
     },
 ];

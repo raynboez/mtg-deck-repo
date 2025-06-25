@@ -5,8 +5,8 @@ use Inertia\Inertia;
 use App\Http\Controllers\DeckController;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+    return Inertia::render('Import');
+})->middleware(['auth', 'verified'])->name('home');
 
 Route::get('deck_import', function () {
     return Inertia::render('Import');

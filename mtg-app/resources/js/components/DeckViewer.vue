@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
 import { RefreshCw, CircleAlert, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
+import axios from 'axios';
 
 interface Card {
   card_id: number;
@@ -223,26 +224,16 @@ async function copyDeckToClipboard() {
   if (!btn) return;
 
   try {
-    // Show loading state
     btn.innerHTML = 'Copying...';
     btn.disabled = true;
     
-    // Call your Laravel API endpoint
-    const response = await fetch(`/getDeck/${props.deck.deck_id}`, {
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      }
-    });
+    const response = await axios.get(`/api/getDeck/${props.deck.deck_id}`,{ responseType: 'text' });
     
-    if (!response.ok) throw new Error('Network response was not ok');
+    if (!(response.status === 200)) throw new Error('Network response was not ok');
+    const data = response.data; 
     
-    const data = await response.json();
+    await navigator.clipboard.writeText(data);
     
-    // Copy the response to clipboard
-    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    
-    // Show success feedback
     btn.innerHTML = 'Copied!';
     setTimeout(() => {
       btn.innerHTML = 'COPY DECK';
