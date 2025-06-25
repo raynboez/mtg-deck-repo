@@ -216,6 +216,49 @@ onUnmounted(() => {
   isMounted.value = false;
 });
 
+
+async function copyDeckToClipboard() {
+  const btn = document.getElementById('copyDeckBtn') as HTMLButtonElement;;
+  
+  if (!btn) return;
+
+  try {
+    // Show loading state
+    btn.innerHTML = 'Copying...';
+    btn.disabled = true;
+    
+    // Call your Laravel API endpoint
+    const response = await fetch(`/getDeck/${props.deck.deck_id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+    
+    if (!response.ok) throw new Error('Network response was not ok');
+    
+    const data = await response.json();
+    
+    // Copy the response to clipboard
+    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    
+    // Show success feedback
+    btn.innerHTML = 'Copied!';
+    setTimeout(() => {
+      btn.innerHTML = 'COPY DECK';
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    btn.innerHTML = 'Error!';
+    setTimeout(() => {
+      btn.innerHTML = 'COPY DECK';
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
 </script>
 <template>
   <div class="deck-viewer">
@@ -246,15 +289,18 @@ onUnmounted(() => {
         </div>
         
         <!-- Buttons -->
-        <button class="
-          bg-green-600 hover:bg-green-700 
-          text-white font-medium 
-          h-9 px-4
-          rounded-md
-          transition-all duration-200
-          shadow-sm hover:shadow-md
-          focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
-        ">
+        <button 
+          id="copyDeckBtn"
+          class="
+            bg-green-600 hover:bg-green-700 
+            text-white font-medium 
+            h-9 px-4
+            rounded-md
+            transition-all duration-200
+            shadow-sm hover:shadow-md
+            focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
+          "
+          @click="copyDeckToClipboard">
           COPY DECK
         </button>
         
@@ -302,7 +348,7 @@ onUnmounted(() => {
               <RefreshCw/>
             </div>
           </div>
-        </div>S
+        </div>
       </div>
     </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\DeckExportService;
 use App\Models\Deck;
 use Inertia\Inertia;
 
@@ -83,5 +84,13 @@ class DeckController extends Controller
         }
 
         return response()->json($cardArr);
+    }
+
+    public function getDeckExport(Request $request, $deck_id)
+    {
+        $deck = Deck::findOrFail($deck_id);
+        $exportText = app(DeckExportService::class)->generateExportText($deck);      
+        
+        return $exportText;
     }
 }

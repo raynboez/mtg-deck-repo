@@ -67,7 +67,7 @@ class Card extends Model
 
 	public function decks()
 	{
-		return $this->belongsToMany(Deck::class, 'deck_cards')
+		return $this->belongsToMany(Deck::class, 'deck_cards', 'card_id', 'deck_id')
 					->withPivot('prim_key', 'is_commander', 'is_companion', 'is_main_deck', 'is_sideboard', 'quantity');
 	}
 

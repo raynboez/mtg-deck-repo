@@ -19,5 +19,5 @@ Route::group(['middleware' => ['web']], function()
     Route::get('/decks/user/{userId}', [DeckController::class, 'userDecksById']);
     Route::get('/decks/{userId}', [DeckController::class, 'getDeck']);
     Route::get('/users', [DeckController::class, 'getUsers']);
-    Route::get('/getDeck/{deckId}', [DeckController::class, 'getDeckJson']);
+    Route::get('/getDeck/{deckId}', [DeckController::class, 'getDeckExport']);
 });
