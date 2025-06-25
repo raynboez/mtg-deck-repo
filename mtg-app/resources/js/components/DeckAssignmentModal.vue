@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content bg-sidebar">
       <h2>Assign Deck Details</h2>
       
       <form @submit.prevent="submitDeckDetails">
@@ -61,12 +61,11 @@
         </div>
         -->
 
-        <div class="form-group">
-          <label for="powerLevel">Power Level</label>
+        <div class="form-group ">
+          <label class="custom-select" for="powerLevel">Power Level:
           <select 
             id="powerLevel" 
             v-model="deckDetails.power_level" 
-            class="form-control"
             required
           >
             <option value="">Select power level</option>
@@ -76,6 +75,7 @@
             <option value="4">4 - Optimized</option>
             <option value="5">5 - Competitive</option>
           </select>
+        </label>
         </div>
         
         <div class="modal-actions">
@@ -146,7 +146,6 @@ export default {
 }
 
 .modal-content {
-  background: white;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
@@ -193,5 +192,27 @@ export default {
   background: #007bff;
   color: white;
   border: none;
+}
+
+label.custom-select {
+    position: relative;
+    display: inline-block;
+
+}
+
+.custom-select select {
+    display: inline-block;
+    padding: 4px 3px 3px 5px;
+    margin: 0;
+    font: inherit;
+    outline:none;
+    line-height: 1.2;
+    background: white;
+    color:black;
+    border:0;
+}
+
+.no-pointer-events .custom-select:after {
+    content: none;
 }
 </style>

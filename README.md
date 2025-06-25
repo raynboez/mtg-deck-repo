@@ -20,6 +20,8 @@ npm install
 
 npm run build
 
+setup .env
+
 php artisan migrate
 
 php artisan key:generate

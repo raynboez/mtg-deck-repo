@@ -157,11 +157,11 @@ class DeckImportController extends Controller
 
     protected function parseCardLine($line)
     {
-        $pattern = '/^(\d+)\s+(.*?)\s+\(([A-Z0-9]+)\)\s+([A-Z0-9]*-?\d+)(?:\s+\*[FE]\*)?$/';
+        $pattern = '/^(\d+)\s+(.*?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9]*-?\d+)(?:\s+\*[FE]\*)?$/';
 
         if(!preg_match($pattern, $line, $matches)) 
         {
-            $alt = '/^(\d+)\s+(.*?)\s+\(([A-Z0-9]+)\)\s+([A-Z0-9]*-?\d+)(?:\s+\(([FE])\))?$/';
+            $alt = '/^(\d+)\s+(.*?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9]*-?\d+)(?:\s+\(([FE])\))?$/';
             if(!preg_match($alt, $line, $matches))
             {
                 return null;

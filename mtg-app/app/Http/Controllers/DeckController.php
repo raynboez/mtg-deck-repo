@@ -28,6 +28,10 @@ class DeckController extends Controller
         $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
         $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
+        $commanderArr = array();
+        foreach($commanders as $commander){
+            array_push($commanderArr, $commander->card_id);
+        }
         $cardArr = array();
         $reverse = array();
         foreach($deck as $card){
@@ -46,7 +50,7 @@ class DeckController extends Controller
                 'deck' => $deckInfo,
                 'cards' => $cardArr,
                 'reverse' => $reverse,
-                'commanders' => json_encode($commanders)
+                'commanders' => $commanderArr
             ]
         );
     }

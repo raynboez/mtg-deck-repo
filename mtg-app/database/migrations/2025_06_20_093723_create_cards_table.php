@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('collector_number', 100)->nullable();
             $table->boolean('is_gamechanger')->nullable();
             $table->string('oracle_id')->nullable();
-            $table->string('reverse_card_id')->nullable();
+            $table->integer('reverse_card_id')->nullable();
         });
     }
 

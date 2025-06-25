@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('card', function (Blueprint $table) {
+        Schema::table('cards', function (Blueprint $table) {
             $table->foreign(['reverse_card_id'], 'fk_reverse_card_id')->references(['card_id'])->on('reverse_cards')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('card', function (Blueprint $table) {
+        Schema::table('cards', function (Blueprint $table) {
             $table->dropForeign('fk_reverse_card_id');
         });
     }

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
-import { RefreshCw } from 'lucide-vue-next';
+import { RefreshCw, CircleAlert, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
 
 interface Card {
   card_id: number;
@@ -35,7 +35,7 @@ const props = defineProps<{
   };
   cards: Card[];
   reverse: Card[];
-  commanders: number[] | null;
+  commanders: number[];
   exportText: string;
 }>();
 
@@ -90,7 +90,6 @@ const groupedCards = computed(() => {
     groups[type] = { cards: [], totalQuantity: 0 };
   });
   groups['Other'] = { cards: [], totalQuantity: 0 };
-  
   props.cards.forEach(card => {
     var type = '';
     if(props.commanders.includes(card.card_id)){
@@ -220,8 +219,60 @@ onUnmounted(() => {
 </script>
 <template>
   <div class="deck-viewer">
-    <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }}</h1>
-    <p class="text-gray-600 mb-6">{{ deck.description }}</p>
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }}</h1>
+        <p class="text-muted-foreground mb-6">{{ deck.description }}</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Version Selector -->
+        <div class="relative">
+          <select class="
+            text-sm
+            h-9 
+            border border-gray-300 rounded-md 
+            py-0 px-3
+            focus:ring-2 focus:ring-green-500 focus:border-transparent
+            bg-white shadow-sm
+            hover:border-gray-400
+            text-black
+            disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-200
+          " disabled>
+            <option>v1.0</option>
+            <option>v2.0</option>
+            <option>v3.0</option>
+          </select>
+        </div>
+        
+        <!-- Buttons -->
+        <button class="
+          bg-green-600 hover:bg-green-700 
+          text-white font-medium 
+          h-9 px-4
+          rounded-md
+          transition-all duration-200
+          shadow-sm hover:shadow-md
+          focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
+        ">
+          COPY DECK
+        </button>
+        
+        <button class="
+          bg-gray-200 hover:bg-gray-300 
+          text-gray-700 
+          font-medium 
+          h-9 px-4
+          rounded-md
+          transition-all duration-200
+          shadow-sm
+          focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
+          disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-200
+        " disabled>
+          EDIT DECK
+        </button>
+      </div>
+    </div>
 
     <div v-for="type in CARD_TYPE_ORDER.singular" :key="type">    
       <div v-if="groupedCards[type] && groupedCards[type].cards.length > 0" class="mb-8">
@@ -244,17 +295,14 @@ onUnmounted(() => {
             <div v-if="card.quantity > 1" class="absolute bottom-1 left-1 bg-gray-200 text-black text-xs font-semibold px-2 py-1 rounded-md">
               ×{{ card.quantity }}
             </div>
-            <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 rounded">
-              GC
+            <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-orange-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
+              <Swords class="w-4 h-4" />
             </div>
-            <!-- Flip indicator for reversible cards -->
-            <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 text-white text-xs px-1 rounded">
-              <component 
-              :is="RefreshCw"               
-            />
+            <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
+              <RefreshCw/>
             </div>
           </div>
-        </div>
+        </div>S
       </div>
     </div>
 
@@ -278,13 +326,11 @@ onUnmounted(() => {
           <div v-if="card.quantity > 1" class="absolute bottom-1 left-1 bg-gray-200 text-black text-xs font-semibold px-2 py-1 rounded-md">
             ×{{ card.quantity }}
           </div>
-          <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 rounded">
-            GC
+          <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-orange-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
+            <Swords class="w-4 h-4" />
           </div>
-          <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
-            <component 
-              :is="RefreshCw"               
-            />
+          <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
+              <RefreshCw/>
           </div>
         </div>
       </div>

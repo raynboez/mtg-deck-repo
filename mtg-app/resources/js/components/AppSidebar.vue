@@ -34,7 +34,6 @@ export default {
         {
             try {
                 const response = await axios.get('/api/users');
-                console.log(response)
                 this.users = response.data.map((user: any) => 
                 ({
                 id: user.user_id,
@@ -52,14 +51,13 @@ export default {
             {
                 let apiReq = '/api/decks/user/' + userId;
                 const response = await axios.get(apiReq);
-                console.log(response)
                 const user = this.users.find(u => u.id === userId);
                 if(user)
                 {
                     user.decks = response.data.map((deck: any) => ({
                         deck_name: deck.deck_name,
                         deck_id: deck.deck_id,
-                        href: '/dashboard',
+                        href: '/deck_import',
                         icon: LayoutGrid,
                     }));
                 }
@@ -119,7 +117,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route('deck_import')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
