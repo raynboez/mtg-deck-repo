@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_public')->nullable()->default(true);
             $table->integer('power_level')->nullable()->default(2);
             $table->boolean('is_paper')->nullable()->default(true);
+            $table->text('export_text')->nullable();
         });
     }
 

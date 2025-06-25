@@ -5,12 +5,12 @@ use Inertia\Inertia;
 use App\Http\Controllers\DeckController;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+    return Inertia::render('Import');
+})->middleware(['auth', 'verified'])->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('deck_import', function () {
+    return Inertia::render('Import');
+})->middleware(['auth', 'verified'])->name('deck_import');
 
 Route::get('deck/{id}', [DeckController::class, 'show']
 )->middleware(['auth', 'verified'])->name('deck');

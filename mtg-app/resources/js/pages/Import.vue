@@ -7,14 +7,14 @@ import DeckImport from '../components/DeckImport.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Deck Import',
+        href: '/deck_import',
     },
 ];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Deck Import" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">            
@@ -34,9 +34,6 @@ export default {
     },
     methods: {
         handleDeckImported(deck: any){
-            console.log("New Deck:", deck);
-
-            //TODO
         }
     }
 }

@@ -33,10 +33,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('deck_import', absolute: false));
     }
 
-    /**
+    /**S
      * Destroy an authenticated session.
      */
     public function destroy(Request $request): RedirectResponse

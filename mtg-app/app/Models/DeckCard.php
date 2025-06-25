@@ -6,7 +6,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * Class DeckCard
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  */
-class DeckCard extends Model
+class DeckCard extends Pivot
 {
 	protected $table = 'deck_cards';
 
