@@ -27,7 +27,12 @@ class ScryfallService
                 }
             }
 
-            return $this->tryFuzzySearch($normalizedName, $set, $number);
+            $fuzzySearch = $this->tryFuzzySearch($normalizedName, $set, $number);
+            if($fuzzySearch){
+                return $fuzzySearch;
+            } else {
+                return $this->tryFuzzySearch($normalizedName, null, null);
+            }
         } catch (\Exception $e) {
             Log::error("Scryfall API error searching for {$name}: " . $e->getMessage());
             return null;
