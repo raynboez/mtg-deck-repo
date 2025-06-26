@@ -109,10 +109,11 @@ const groupedCards = computed(() => {
 });
 
 const getPrimaryCardType = (typeLine: string): string => {
-  for (const type of CARD_TYPE_ORDER.singular) {
-    if (typeLine.includes('Land')) {
-      return type;
+  if (typeLine.includes('Land')) {
+      return 'Land';
     }
+  for (const type of CARD_TYPE_ORDER.singular) {
+    
     if (typeLine.includes(type)) {
       return type;
     }
