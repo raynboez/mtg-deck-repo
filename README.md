@@ -1,4 +1,4 @@
-installation
+#INSTALLATION
 
 sudo apt update
 
@@ -26,7 +26,7 @@ php artisan migrate
 
 php artisan key:generate
 
-RUNNING
+#RUNNING
 
 npm run dev
 
