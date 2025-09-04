@@ -62,13 +62,13 @@
         -->
 
         <div class="form-group ">
-          <label class="custom-select" for="powerLevel">Power Level:
+          <label class="custom-select" for="powerLevel">Commander Bracket:
           <select 
             id="powerLevel" 
             v-model="deckDetails.power_level" 
             required
           >
-            <option value="">Select power level</option>
+            <option value="">Select deck bracket</option>
             <option value="1">1 - Jank</option>
             <option value="2">2 - Casual</option>
             <option value="3">3 - Focused</option>

@@ -12,6 +12,10 @@ Route::get('deck_import', function () {
     return Inertia::render('Import');
 })->middleware(['auth', 'verified'])->name('deck_import');
 
+Route::get('match_import', function () {
+    return Inertia::render('ImportMatch');
+})->middleware(['auth', 'verified'])->name('match_import');
+
 Route::get('deck/{id}', [DeckController::class, 'show']
 )->middleware(['auth', 'verified'])->name('deck');
 

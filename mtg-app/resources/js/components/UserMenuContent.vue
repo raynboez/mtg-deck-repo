@@ -3,7 +3,7 @@ import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { Folder, LogOut, Settings } from 'lucide-vue-next';
 
 interface Props {
     user: User;
@@ -22,6 +22,16 @@ defineProps<Props>();
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
+    <DropdownMenuSeparator />
+    <DropdownMenuGroup>
+        <DropdownMenuItem :as-child="true">
+            <a class="block w-full" href="https://github.com/raynboez/mtg-deck-repo" target="_blank" rel="noopener noreferrer" prefetch as="button">
+                <Folder class="mr-2 h-4 w-4" />
+                Github Repo
+            </a>
+            
+        </DropdownMenuItem>
+    </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">

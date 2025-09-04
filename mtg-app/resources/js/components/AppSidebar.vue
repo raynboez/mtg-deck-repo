@@ -6,9 +6,11 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarFooter, SidebarHeader, Si
 import { type NavItem, User, Deck } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, ChevronRight} from 'lucide-vue-next';
-import AppLogo from './AppLogo.vue';
+import AppLogo from './ImportDeckButton.vue';
 import axios from 'axios';
 import Separator from './ui/separator/Separator.vue';
+import ImportDeckButton from './ImportDeckButton.vue';
+import RecordMatchButton from './RecordMatchButton.vue';
 </script>
 <script lang="ts">
 
@@ -119,7 +121,7 @@ const footerNavItems: NavItem[] = [
                 <SidebarMenuItem>
                     <SidebarMenuButton class="headerButton" size="lg" as-child>
                         <Link :href="route('deck_import')">
-                            <AppLogo />
+                            <ImportDeckButton />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -153,7 +155,13 @@ const footerNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
+            <SidebarMenuItem>
+                    <SidebarMenuButton class="headerButton" size="lg" as-child>
+                        <Link :href="route('match_import')">
+                            <RecordMatchButton />
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
             <NavUser />
         </SidebarFooter>
     </Sidebar>
@@ -183,7 +191,7 @@ const footerNavItems: NavItem[] = [
   background: linear-gradient(135deg, var(--chart-2), var(--primary));
   color: var(--primary-foreground);
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius); 
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
