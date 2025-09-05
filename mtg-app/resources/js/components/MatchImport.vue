@@ -11,10 +11,59 @@ import { X, XCircle } from 'lucide-vue-next';
         <h2 class="header text-2xl font-semibold text-center mb-6 pb-4 border-b border-border">Record MTG Match</h2>
 
         <form @submit.prevent="submitMatch" class="space-y-6">
-            <div class="flex justify-end">
+            <!-- Move date played and format here -->
+            <div class="match-details grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="form-group">
+                    <label for="date-played" class="block text-sm font-medium mb-1">Date Played</label>
+                    <input 
+                        id="date-played" 
+                        type="datetime-local" 
+                        v-model="matchDetails.date_played"
+                        class="w-full p-2 border border-input rounded-md bg-background"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="format" class="block text-sm font-medium mb-1">Format</label>
+                    <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
+                        <option value="" disabled>Select a format</option>
+                        <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
+                        <option value="Casual Commander">Casual Commander</option>
+                        <option value="Custom Game">Custom Game</option>
+                    </select>
+                </div>
+
+                <!-- Add bracket dropdown -->
+                <div class="form-group">
+                    <label for="bracket" class="block text-sm font-medium mb-1">Bracket</label>
+                    <select id="bracket" v-model="matchDetails.bracket" class="w-full p-2 border border-input rounded-md bg-background" required>
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+            <div class="actions flex justify-end gap-3">
                 <button type="button" class="add-player-btn bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors" @click="addPlayer">
                     <i class="fas fa-plus mr-2"></i> Add Player
                 </button>
+            
+            
+                <button type="button" @click="resetForm" class="px-4 py-2 border border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">Reset</button>
+                <button type="submit" :disabled="loading" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground transition-colors">
+                    {{ loading ? 'Saving...' : 'Save Match' }}
+                </button>
+            </div>
+
+            <div v-if="error" class="error-message p-3 bg-destructive/20 text-destructive rounded-md">
+                {{ error }}
+            </div>
+
+            <div v-if="success" class="success-message p-3 bg-green-500/20 text-green-600 rounded-md dark:text-green-400">
+                Match recorded successfully.
             </div>
 
             <div class="player-grid grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -132,43 +181,6 @@ import { X, XCircle } from 'lucide-vue-next';
                 </div>
             </div>
 
-            <div class="match-details grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="form-group">
-                    <label for="date-played" class="block text-sm font-medium mb-1">Date Played</label>
-                    <input 
-                        id="date-played" 
-                        type="datetime-local" 
-                        v-model="matchDetails.date_played"
-                        class="w-full p-2 border border-input rounded-md bg-background"
-                        required
-                    >
-                </div>
-                
-                <div class="form-group">
-                    <label for="format" class="block text-sm font-medium mb-1">Format</label>
-                    <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
-                        <option value="" disabled>Select a format</option>
-                        <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
-                        <option value="Casual Commander">Casual Commander</option>
-                        <option value="Custom Game">Custom Game</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="actions flex justify-end gap-3">
-                <button type="button" @click="resetForm" class="px-4 py-2 border border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">Reset</button>
-                <button type="submit" :disabled="loading" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground transition-colors">
-                    {{ loading ? 'Saving...' : 'Save Match' }}
-                </button>
-            </div>
-
-            <div v-if="error" class="error-message p-3 bg-destructive/20 text-destructive rounded-md">
-                {{ error }}
-            </div>
-
-            <div v-if="success" class="success-message p-3 bg-green-500/20 text-green-600 rounded-md dark:text-green-400">
-                Match recorded successfully.
-            </div>
         </form>
     </div>
 </template>
@@ -177,6 +189,7 @@ import { X, XCircle } from 'lucide-vue-next';
     export default {
         data() {
             return {
+                users:[],
                 players: [
                     {
                         user_id: '',
@@ -217,22 +230,9 @@ import { X, XCircle } from 'lucide-vue-next';
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: ''
+                    format: '',
+                    bracket: '2'
                 },
-                userList: [
-                    { id: 1, name: 'Ben' },
-                    { id: 2, name: 'Oli' },
-                    { id: 3, name: 'Dan' },
-                    { id: 4, name: 'Sarah Williams' },
-                    { id: 5, name: 'Alex Rodriguez' }
-                ],
-                deckList: [
-                    { id: 1, name: 'Kefka' },
-                    { id: 2, name: 'Vehicle Bullshit' },
-                    { id: 3, name: 'Shark Dennis' },
-                    { id: 4, name: 'Zombie Apocalypse' },
-                    { id: 5, name: 'Artifact Storm' }
-                ],
                 loading: false,
                 error: null,
                 success: false
@@ -285,12 +285,17 @@ import { X, XCircle } from 'lucide-vue-next';
                 }
             },            
             getUserDecks(userId) {
-                const user = this.users.find(u => u.id === userId);
-                return user ? user.decks : [];
+                
+                const user = this.users.find(u => Number(u.id) === Number(userId));
+                if (!user || !user.decks || !Array.isArray(user.decks)) {
+                    return [];
+                }
+                
+                return user.decks;
             },
             addPlayer() {
                 this.players.push({
-                    name: '',
+                    user_id: '',
                     deck_id: '',
                     starting_life: 40,
                     final_life: null,
@@ -314,7 +319,7 @@ import { X, XCircle } from 'lucide-vue-next';
                     }
                 });
             },
-            submitMatch() {
+            async submitMatch() {
                 this.loading = true;
                 this.error = null;
                 this.success = false;
@@ -324,23 +329,38 @@ import { X, XCircle } from 'lucide-vue-next';
                     return;
                 }
                 
-                const matchData = {
-                    players: this.players,
-                    date_played: this.matchDetails.date_played,
-                    format: this.matchDetails.format
-                };
-                
-
-                //pretend there's an api call
-                setTimeout(() => {
-                    console.log('Match data to be sent:', matchData);
+                try {
+                    const matchData = {
+                        players: this.players,
+                        date_played: this.matchDetails.date_played,
+                        format: this.matchDetails.format,
+                        bracket: this.matchDetails.bracket
+                    };
+                    
+                    const response = await axios.put('/api/matchRecord', matchData);
+                    
                     this.loading = false;
                     this.success = true;
+                    console.log('API Response:', response.data);
                     
                     setTimeout(() => {
                         this.resetForm();
                     }, 2000);
-                }, 1500);
+                    
+                } catch (error) {
+                    this.loading = false;
+                    
+                    if (error.response) {
+                        console.error('API Error Response:', error.response.data);
+                        this.error = error.response.data.message || 'An error occurred while saving the match';
+                    } else if (error.request) {
+                        console.error('API Error Request:', error.request);
+                        this.error = 'No response from server. Please check your connection.';
+                    } else {
+                        console.error('API Error:', error.message);
+                        this.error = 'An unexpected error occurred.';
+                    }
+                }
             },
             validateForm() {
                 const hasWinner = this.players.some(player => player.winner);
@@ -408,7 +428,8 @@ import { X, XCircle } from 'lucide-vue-next';
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: ''
+                    format: '',
+                    bracket: '2'
                 };
                 
                 this.error = null;

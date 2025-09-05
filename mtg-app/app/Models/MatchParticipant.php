@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 class MatchParticipant extends Model
 {
 	protected $table = 'match_participants';
-
+    public $timestamps = false;
 	protected $fillable = [
         'match_id', 'user_id', 'deck_id', 'is_winner', 
         'starting_life', 'final_life', 'turn_order',

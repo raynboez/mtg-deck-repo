@@ -6,6 +6,7 @@ use App\Models\Matches;
 use App\Models\MatchParticipant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class MatchController extends Controller
@@ -13,35 +14,72 @@ class MatchController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'match_type' => 'required|string|in:commander,tournament,casual',
-            'notes' => 'nullable|string',
-            'played_at' => 'required|date',
-            'participants' => 'required|array|min:2',
-            'participants.*.user_id' => 'required|exists:users,id',
-            'participants.*.deck_id' => 'required|exists:decks,id',
-            'participants.*.is_winner' => 'required|boolean',
-            'participants.*.starting_life' => 'required|integer|min:1',
-            'participants.*.final_life' => 'nullable|integer',
-            'participants.*.turn_order' => 'required|integer|min:1',
+            'players' => 'required|array',
+            'players.*.user_id' => 'required|exists:users,user_id',
+            'players.*.deck_id' => 'required|exists:decks,deck_id',
+            'players.*.starting_life' => 'required|integer',
+            'players.*.final_life' => 'nullable|integer',
+            'players.*.turn_order' => 'required|integer',
+            'players.*.order_lost' => 'nullable|integer',
+            'players.*.winner' => 'required|boolean',
+            'date_played' => 'required|date',
+            'format' => 'required|string',
+            'bracket' => 'required|integer',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        Log::info('Match data received:', $validated);
+
+        DB::beginTransaction();
+
+        try {
             $match = Matches::create([
-                'match_type' => $validated['match_type'],
-                'number_of_players' => count($validated['participants']),
-                'notes' => $validated['notes'] ?? null,
-                'played_at' => $validated['played_at'],
+                'played_at' => $validated['date_played'],
+                'match_type' => $validated['format'],
+                'number_of_players' => count($validated['players']),
+                'bracket' => $validated['bracket']
             ]);
 
-            foreach ($validated['participants'] as $participant) {
+            foreach ($validated['players'] as $playerData) {
                 MatchParticipant::create([
                     'match_id' => $match->id,
-                    ...$participant
+                    'user_id' => $playerData['user_id'],
+                    'deck_id' => $playerData['deck_id'],
+                    'is_winner' => $playerData['winner'],
+                    'starting_life' => $playerData['starting_life'],
+                    'final_life' => $playerData['final_life'],
+                    'turn_order' => $playerData['turn_order'],
+                    'order_lost' => $playerData['order_lost'] | 0,
+                    'turn_lost' => 0,
                 ]);
             }
 
-            return response()->json($match->load('participants.user', 'participants.deck'), 201);
-        });
+            DB::commit();
+
+            \Log::info('Match created successfully', [
+                'match_id' => $match->id,
+                'participants_count' => count($validated['players'])
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Match recorded successfully',
+                'match_id' => $match->id,
+                'participants_count' => count($validated['players'])
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error('Error creating match: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record match',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function userMatches($userId)

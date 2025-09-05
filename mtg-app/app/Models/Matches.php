@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 class Matches extends Model
 {
 	protected $table = 'matches';
+    protected $fillable = [
+        'played_at','bracket',
+        'match_type', 'notes', 'number_of_players'
+    ];
 
 	protected $casts = [
         'played_at' => 'datetime',
