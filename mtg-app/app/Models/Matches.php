@@ -21,9 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 class Matches extends Model
 {
 	protected $table = 'matches';
+    protected $primaryKey = 'match_id';
     protected $fillable = [
         'played_at','bracket',
-        'match_type', 'notes', 'number_of_players'
+        'match_type', 'notes', 'number_of_players', 'total_turns'
     ];
 
 	protected $casts = [
@@ -32,7 +33,7 @@ class Matches extends Model
 
     public function participants()
     {
-        return $this->hasMany(MatchParticipant::class);
+        return $this->hasMany(MatchParticipant::class, 'match_id');
     }
 
     public function winners()

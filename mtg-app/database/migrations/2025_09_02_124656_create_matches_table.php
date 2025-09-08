@@ -15,6 +15,7 @@ return new class extends Migration
             $table->integer('match_id', true);
             $table->string('match_type'); // 'gulag commander', 'commander' 
             $table->integer('number_of_players');
+            $table->integer('total_turns');
             $table->integer('bracket');
             $table->text('notes')->nullable();
             $table->timestamp('played_at');

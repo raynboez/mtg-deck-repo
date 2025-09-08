@@ -24,8 +24,6 @@ Route::group(['middleware' => ['web']], function()
     Route::get('/getDeck/{deckId}', [DeckController::class, 'getDeckExport']);
 
     Route::put('/matchRecord', [MatchController::class, 'store']);
-    Route::get('users/{user}/matches', [MatchController::class, 'userMatches']);
-    Route::get('decks/{deck}/matches', [MatchController::class, 'deckMatches']);
-    Route::get('users/{user}/stats', [StatsController::class, 'userStats']);
-    Route::get('decks/{deck}/stats', [StatsController::class, 'deckStats']);
+    Route::get('/stats', [StatsController::class, 'index']);
+    Route::get('/stats/player/{playerId}', [StatsController::class, 'playerStats']);
 });

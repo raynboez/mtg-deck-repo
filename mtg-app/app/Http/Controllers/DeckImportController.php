@@ -32,7 +32,6 @@ class DeckImportController extends Controller
         ]);
 
         $user = auth()->user();
-        $file = $request->file('file');
         $deckName = $request->input('deck_name');
         $deckDescription = $request->input('deck_description');
 
@@ -264,6 +263,8 @@ class DeckImportController extends Controller
         ]);
     }
 
+    
+
     public function update(Request $request, $id)
     {
         Log::info($id);
@@ -283,13 +284,131 @@ class DeckImportController extends Controller
                 'power_level' => $validated['power_level']
             ]
             );
+        $identityArray = [];
         foreach ($validated['commanders'] as $commanderId) {
             DB::table('deck_cards')->where('card_id', $commanderId)->update(
             [
                 'is_commander' => true
             ]);
+            $commander = Card::findOrFail($commanderId);
+            $cardIdentity = $commander->colour_identity ? explode(',', $commander->colour_identity) : [];
+            $identityArray = array_unique(array_merge($identityArray, $cardIdentity));
         }
+        Log::info($identityArray);
+        $deck->colour_identity = $this->getIdentity($identityArray);
+
+        $deck->save();
         
         return response()->json($deck);
+
     }
+    protected function getIdentity(array $colorIdentity){
+        $normalized = $this->normalizeColorIdentity($colorIdentity);
+        
+        return $this->factionNames[$normalized] ?? $this->generateDescriptiveName($colorIdentity);
+    }
+
+    protected function normalizeColorIdentity(array $colorIdentity)
+    {
+
+        if (empty($colorIdentity)) {
+            return '';
+        }
+
+        $uniqueColors = array_unique($colorIdentity);
+        $sorted = $this->sortColorsWubrg($uniqueColors);
+        
+        return implode('', $sorted);
+    }
+
+    protected function sortColorsWubrg(array $colors)
+    {
+        $wubrgOrder = ['W', 'U', 'B', 'R', 'G'];
+        
+        return array_filter($wubrgOrder, function($color) use ($colors) {
+            return in_array($color, $colors);
+        });
+    }
+
+    protected function generateDescriptiveName(array $colors)
+    {
+        if (empty($colors)) {
+            return 'Colorless';
+        }
+
+        $sortedColors = $this->sortColorsWubrg($colors);
+        $colorNames = array_map(fn($color) => $this->colorNames[$color] ?? $color, $sortedColors);
+        
+        if (count($sortedColors) === 1) {
+            return $colorNames[0];
+        }
+        
+        return implode('-', $colorNames);
+    }
+
+    public function getColorNames(array $colorIdentity)
+    {
+        if (empty($colorIdentity)) {
+            return 'Colorless';
+        }
+
+        $sortedColors = $this->sortColorsWubrg($colorIdentity);
+        $names = array_map(fn($color) => $this->colorNames[$color] ?? $color, $sortedColors);
+        
+        return implode(', ', $names);
+    }
+
+    public function getNormalizedColorString(array $colorIdentity)
+    {
+        return $this->normalizeColorIdentity($colorIdentity);
+    }
+
+
+    protected $factionNames = [
+        'W' => 'Monowhite',
+        'U' => 'Monoblue',
+        'B' => 'Monoblack',
+        'R' => 'Monored',
+        'G' => 'Monogreen',
+        
+        'WU' => 'Azorius',
+        'UB' => 'Dimir',
+        'BR' => 'Rakdos',
+        'RG' => 'Gruul',
+        'GW' => 'Selesnya',
+        'WB' => 'Orzhov',
+        'BG' => 'Golgari',
+        'GU' => 'Simic',
+        'UR' => 'Izzet',
+        'RW' => 'Boros',
+        
+        'WUB' => 'Esper',
+        'UBR' => 'Grixis',
+        'BRG' => 'Jund',
+        'RGW' => 'Naya',
+        'GWU' => 'Bant',
+        'WBG' => 'Abzan',
+        'URW' => 'Jeskai',
+        'BGU' => 'Sultai',
+        'RWB' => 'Mardu',
+        'GUR' => 'Temur',
+        
+        'WUBR' => 'Yore-Tiller',
+        'UBRG' => 'Glint-Eye',
+        'BRGW' => 'Dune-Brood',
+        'RGWU' => 'Ink-Treader',
+        'GWUB' => 'Witch-Maw',
+        
+        'WUBRG' => 'Five-Color',
+        
+        '' => 'Colorless'
+    ];
+
+    protected $colorNames = [
+        'W' => 'White',
+        'U' => 'Blue',
+        'B' => 'Black',
+        'R' => 'Red',
+        'G' => 'Green'
+    ];
 }

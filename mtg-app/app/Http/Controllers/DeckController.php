@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DivisionByZeroError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +27,7 @@ class DeckController extends Controller
 
     public function getDeck(Request $request, $deckId)
     {
+        $user = $request->user()->user_id;
         $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
         $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
@@ -46,12 +48,38 @@ class DeckController extends Controller
             array_push($cardArr, $cardData);
         }
 
+        $personalwins = count(DB::table('match_participants')->where('user_id', $user)->where('deck_id', $deckId)->where('is_winner', 1)->get());
+        $personalgames = count(DB::table('match_participants')->where( 'user_id', $user)->where('deck_id', $deckId)->get());
+        $personalloss = $personalgames - $personalwins;
+        try{
+        $personalpercent = number_format(($personalwins / $personalgames) * 100); 
+        }
+        catch(DivisionByZeroError){
+            $personalpercent = 0;
+        }
+        $wins = count(DB::table('match_participants')->where('deck_id', $deckId)->where('is_winner', 1)->get());
+        $games = count(DB::table('match_participants')->where('deck_id', $deckId)->get());
+        $loss = $games - $wins;
+        try{
+        $percent = number_format(($wins / $games) * 100); 
+        }
+        catch(DivisionByZeroError){
+            $percent = 0;
+        }
+
+        if($personalgames != $games){
+            $deckstats = $wins . "-" . $loss . " (" . $percent . "%). Personal Win-Loss: " . $personalwins . "-" . $personalloss . " (" . $personalpercent . "%)";
+        } else {
+            $deckstats = $wins . "-" . $loss . " (" . $percent . "%)";
+        }
+        
         return response()->json(
             [
                 'deck' => $deckInfo,
                 'cards' => $cardArr,
                 'reverse' => $reverse,
-                'commanders' => $commanderArr
+                'commanders' => $commanderArr,
+                'deckstats' => $deckstats
             ]
         );
     }

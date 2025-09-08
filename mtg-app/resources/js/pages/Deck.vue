@@ -24,6 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 :cards="cards"
                 :reverse="reverse"
                 :commanders=commanders
+                :deckstats="deckstats"
                 :exportText="exportText" 
                 />
             <div v-else>Loading deck...</div>
@@ -48,6 +49,7 @@ export default {
       cards: null,
       reverse: null,
       commanders: [],
+      deckstats: null,
       exportText: ''
     }
   },
@@ -64,6 +66,7 @@ export default {
         this.cards = response.data.cards
         this.reverse = response.data.reverse
         this.commanders = Array.isArray(response.data.commanders) ? response.data.commanders : JSON.parse(response.data.commanders);
+        this.deckstats = response.data.deckstats
         this.exportText = response.data.export
       } catch (error) {
         console.error('Error fetching deck:', error)

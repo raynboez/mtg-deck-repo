@@ -25,8 +25,8 @@ return new class extends Migration
     {
         Schema::table('match_participants', function (Blueprint $table) {
             $table->dropForeign('fk_match_id');
-            $table->dropForeign('fk_user_id');
-            $table->dropForeign('fk_deck_id');
+            $table->dropForeign('fk_match_user_id');
+            $table->dropForeign('fk_match_deck_id');
         });
     }
 };

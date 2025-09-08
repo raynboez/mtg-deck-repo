@@ -30,16 +30,16 @@ class MatchParticipant extends Model
 
     public function match()
     {
-        return $this->belongsTo(Matches::class);
+        return $this->belongsTo(Matches::class, 'match_id');
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function deck()
     {
-        return $this->belongsTo(Deck::class);
+        return $this->belongsTo(Deck::class, "deck_id");
     }
 }

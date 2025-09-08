@@ -12,7 +12,7 @@ import { X, XCircle } from 'lucide-vue-next';
 
         <form @submit.prevent="submitMatch" class="space-y-6">
             <!-- Move date played and format here -->
-            <div class="match-details grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="match-details grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="form-group">
                     <label for="date-played" class="block text-sm font-medium mb-1">Date Played</label>
                     <input 
@@ -23,16 +23,20 @@ import { X, XCircle } from 'lucide-vue-next';
                         required
                     >
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="format" class="block text-sm font-medium mb-1">Format</label>
-                    <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
-                        <option value="" disabled>Select a format</option>
-                        <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
-                        <option value="Casual Commander">Casual Commander</option>
-                        <option value="Custom Game">Custom Game</option>
-                    </select>
-                </div>
+                            <label for="total_turn" class="block text-sm font-medium mb-1">Total Turns</label>
+                            <input 
+                                id="total_turn" 
+                                type="number"
+                                v-model="matchDetails.totalTurns" 
+                                min="0"
+                                class="w-full p-2 border border-input rounded-md bg-background"
+                                required
+                            >
+                        </div>
+                
+                
 
                 <!-- Add bracket dropdown -->
                 <div class="form-group">
@@ -45,7 +49,19 @@ import { X, XCircle } from 'lucide-vue-next';
                         <option value="5">5</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="format" class="block text-sm font-medium mb-1">Format</label>
+                    <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
+                        <option value="" disabled>Select a format</option>
+                        <option value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
+                        <option value="Casual Commander">Casual Commander</option>
+                        <option value="Custom Game">Custom Game</option>
+                    </select>
+                </div>
             </div>
+
+            
             <div class="actions flex justify-end gap-3">
                 <button type="button" class="add-player-btn bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors" @click="addPlayer">
                     <i class="fas fa-plus mr-2"></i> Add Player
@@ -115,8 +131,52 @@ import { X, XCircle } from 'lucide-vue-next';
                                 >
                                     {{ deck.deck_name }}
                                 </option>
+                                <option value="borrow">Borrow a Deck</option>
                             </select>
                         </div>
+
+
+        
+                        <div v-if="player.deck_id === 'borrow'" class="borrow-fields">
+                            <div class="form-group">
+                                <label :for="'borrow-user-' + index" class="block text-sm font-medium mb-1">Borrow From</label>
+                                <select 
+                                    :id="'borrow-user-' + index" 
+                                    v-model="player.borrow_user_id"
+                                    class="w-full p-2 border border-input rounded-md bg-background"
+                                    required
+                                >
+                                    <option value="" disabled>Select a player</option>
+                                    <option v-for="user in users" :key="user.id" :value="user.id">
+                                        {{ user.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        
+                        </div>
+                        <div v-if="player.deck_id === 'borrow'" class="borrow-fields">
+                        <div class="form-group">
+                                <label :for="'borrow-deck-' + index" class="block text-sm font-medium mb-1">Deck to Borrow</label>
+                                <select 
+                                    :id="'borrow-deck-' + index" 
+                                    v-model="player.borrow_deck_id"
+                                    :disabled="!player.borrow_user_id"
+                                    :class="{'opacity-50 cursor-not-allowed': !player.borrow_user_id}"
+                                    class="w-full p-2 border border-input rounded-md bg-background"
+                                    required
+                                >
+                                    <option value="" disabled>Select a deck</option>
+                                    <option 
+                                        v-for="deck in getUserDecks(player.borrow_user_id)" 
+                                        :key="deck.deck_id" 
+                                        :value="deck.deck_id"
+                                    >
+                                        {{ deck.deck_name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    
                         
                         <div class="form-group">
                             <label :for="'starting-life-' + index" class="block text-sm font-medium mb-1">Starting Life</label>
@@ -153,6 +213,19 @@ import { X, XCircle } from 'lucide-vue-next';
                             >
                         </div>
                         
+                        
+                        
+                        <div class="form-group flex items-center">
+                            <input 
+                                type="checkbox" 
+                                :id="'winner-' + index" 
+                                v-model="player.winner"
+                                @change="setWinner(index)"
+                                class="mr-2"
+                            >
+                            <label :for="'winner-' + index" class="text-sm font-medium">Winner</label>
+                        </div>
+                        
                         <div class="form-group">
                             <label :for="'order-lost-' + index" class="block text-sm font-medium mb-1">Elimination Order</label>
                             <input 
@@ -166,17 +239,20 @@ import { X, XCircle } from 'lucide-vue-next';
                                 class="w-full p-2 border border-input rounded-md bg-background"
                             >
                         </div>
-                        
-                        <div class="form-group md:col-span-2 flex items-center">
+
+                        <div class="form-group">
+                            <label :for="'turn-lost-' + index" class="block text-sm font-medium mb-1">Turn Lost</label>
                             <input 
-                                type="checkbox" 
-                                :id="'winner-' + index" 
-                                v-model="player.winner"
-                                @change="setWinner(index)"
-                                class="mr-2"
+                                :id="'turn-lost-' + index" 
+                                type="number" 
+                                v-model.number="player.turn_lost"
+                                min="0"
+                                :disabled="player.winner"
+                                :class="{'opacity-50 cursor-not-allowed': player.winner}"
+                                class="w-full p-2 border border-input rounded-md bg-background"
                             >
-                            <label :for="'winner-' + index" class="text-sm font-medium">Winner</label>
                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -198,6 +274,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 1,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -207,6 +284,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 2,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -216,6 +294,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 3,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -225,12 +304,14 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 4,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     }
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: '',
+                    format: 'Gulag Commander - Season 0',
+                    totalTurns: '',
                     bracket: '2'
                 },
                 loading: false,
@@ -301,6 +382,7 @@ import { X, XCircle } from 'lucide-vue-next';
                     final_life: null,
                     turn_order: this.players.length + 1,
                     order_lost: null,
+                    turn_lost: null,
                     winner: false
                 });
             },
@@ -333,9 +415,12 @@ import { X, XCircle } from 'lucide-vue-next';
                     const matchData = {
                         players: this.players,
                         date_played: this.matchDetails.date_played,
+                        totalTurns: this.matchDetails.totalTurns,
                         format: this.matchDetails.format,
                         bracket: this.matchDetails.bracket
                     };
+                    
+                    console.log(matchData);
                     
                     const response = await axios.put('/api/matchRecord', matchData);
                     
@@ -369,6 +454,7 @@ import { X, XCircle } from 'lucide-vue-next';
                     this.error = 'Please mark one player as the winner.';
                     return false;
                 }
+
                 
                 const allNamesFilled = this.players.every(player => player.name !== '');
                 
@@ -377,13 +463,17 @@ import { X, XCircle } from 'lucide-vue-next';
                     return false;
                 }
                 
-                const allDecksFilled = this.players.every(player => player.deck_id !== '');
-                
+                const allDecksFilled = this.players.every(player => {
+                    if (player.deck_id === 'borrow') {
+                        return player.borrow_user_id && player.borrow_deck_id;
+                    }
+                    return player.deck_id !== '';
+                });
+                    
                 if (!allDecksFilled) {
-                    this.error = 'Please select a deck for all participants.';
+                    error.value = 'Please select a deck for all participants.';
                     return false;
                 }
-                
                 return true;
             },
             resetForm() {
@@ -395,6 +485,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 1,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -404,6 +495,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 2,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -413,6 +505,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 3,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     },
                     {
@@ -422,13 +515,15 @@ import { X, XCircle } from 'lucide-vue-next';
                         final_life: null,
                         turn_order: 4,
                         order_lost: null,
+                        turn_lost: null,
                         winner: false
                     }
                 ];
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: '',
+                    format: 'Gulag Commander - Season 0',
+                    totalTurns: '',
                     bracket: '2'
                 };
                 
