@@ -37,6 +37,7 @@ const props = defineProps<{
   cards: Card[];
   reverse: Card[];
   commanders: number[];
+  deckstats: string | null;
   exportText: string;
 }>();
 
@@ -260,8 +261,9 @@ async function copyDeckToClipboard() {
   <div class="deck-viewer">
     <div class="flex justify-between items-start">
       <div>
-        <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }}</h1>
-        <p class="text-muted-foreground mb-6">{{ deck.description }}</p>
+        <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }} - Bracket {{ deck.power_level }}</h1>
+        <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
+        <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
       </div>
 
       <div class="flex items-center gap-3">

@@ -16,3 +16,9 @@ const props = defineProps<{
     <slot />
   </li>
 </template>
+
+<style>
+li {
+  list-style-type: none;
+}
+</style>

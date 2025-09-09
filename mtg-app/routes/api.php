@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeckImportController;
+use App\Http\Controllers\MatchController;
+use App\Http\Controllers\StatsController;
 use App\Http\Controllers\DeckController;
 
 Route::get('/user', function (Request $request) {
@@ -20,4 +22,8 @@ Route::group(['middleware' => ['web']], function()
     Route::get('/decks/{userId}', [DeckController::class, 'getDeck']);
     Route::get('/users', [DeckController::class, 'getUsers']);
     Route::get('/getDeck/{deckId}', [DeckController::class, 'getDeckExport']);
+
+    Route::put('/matchRecord', [MatchController::class, 'store']);
+    Route::get('/stats', [StatsController::class, 'index']);
+    Route::get('/stats/player/{playerId}', [StatsController::class, 'playerStats']);
 });

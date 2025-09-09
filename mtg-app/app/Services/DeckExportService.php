@@ -12,7 +12,7 @@ class DeckExportService
         
         // Add About section
         $exportLines[] = "About";
-        $exportLines[] = "Name " . $deck->name;
+        $exportLines[] = "Name " . $deck->deck_name;
         $exportLines[] = ""; // Empty line
 
         // Load cards with pivot data if not already loaded
