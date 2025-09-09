@@ -5,10 +5,10 @@ import { useRouter } from 'vue-router';
 </script>
 
 <template>
-    <div class="container mx-auto px-4 py-8">
+    <div class="text-foreground container mx-auto px-4 py-8">
         <div v-if="loading" class="text-center py-12">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p class="mt-4 text-gray-600">Loading statistics...</p>
+            <p class="mt-4 ">Loading statistics...</p>
         </div>
 
         <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
@@ -24,14 +24,14 @@ import { useRouter } from 'vue-router';
 
         <div v-else>
             <header class="text-center mb-12">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">MTG Match Statistics</h1>
-                <p class="text-gray-600">Track your performance and progress over time</p>
+                <h1 class="text-4xl font-bold mb-2">MTG Match Statistics</h1>
+                <p class="">Track your performance and progress over time</p>
             </header>
 
-            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="card rounded-xl shadow-md p-6 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+                        <label class="block text-sm font-medium  mb-1">Time Period</label>
                         <select v-model="filters.period" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option value="all">All Time</option>
                             <option value="month">This Month</option>
@@ -39,7 +39,7 @@ import { useRouter } from 'vue-router';
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                        <label class="block text-sm font-medium  mb-1">Format</label>
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option value="all">All Formats</option>
                             <option value="Gulag Commander - Season 0">Gulag Commander</option>
@@ -48,14 +48,14 @@ import { useRouter } from 'vue-router';
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bracket</label>
+                        <label class="block text-sm font-medium  mb-1">Bracket</label>
                         <select v-model="filters.bracket" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option value="all">All Brackets</option>
                             <option v-for="n in 5" :value="n">{{ n }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Player</label>
+                        <label class="block text-sm font-medium  mb-1">Player</label>
                         <select v-model="filters.player" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option value="all">All Players</option>
                             <option v-for="player in players" :value="player.id">{{ player.name }}</option>
@@ -65,38 +65,38 @@ import { useRouter } from 'vue-router';
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-blue-600 mb-2">{{ statistics.total_matches || 0 }}</div>
-                    <div class="text-gray-600">Total Matches</div>
+                    <div class="">Total Matches</div>
                 </div>
-                <div class="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-green-600 mb-2">{{ statistics.average_turns_per_game || 0 }}</div>
-                    <div class="text-gray-600">Avg. Turns/Game</div>
+                    <div class="">Avg. Turns/Game</div>
                 </div>
-                <div class="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-purple-600 mb-2">{{ mostWinsPlayer }}</div>
-                    <div class="text-gray-600">Most Wins</div>
+                    <div class="">Most Wins</div>
                 </div>
-                <div class="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-red-600 mb-2">{{ highestWinRate }}%</div>
-                    <div class="text-gray-600">Best Win Rate</div>
+                    <div class="">Best Win Rate</div>
                 </div>
             </div>
 
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Player Statistics</h2>
+            <h2 class="text-2xl font-semibold  mb-6">Player Statistics</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <div v-for="player in statistics.player_stats || []" :key="player.user_id" class="bg-white rounded-xl shadow-md p-6">
+                <div v-for="player in statistics.player_stats || []" :key="player.user_id" class="card rounded-xl shadow-md p-6">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold">
                             {{ getInitials(player.name) }}
                         </div>
                         <div class="ml-4">
                             <h3 class="text-xl font-semibold">{{ player.name }}</h3>
-                            <p class="text-gray-600">{{ player.wins }} wins / {{ player.losses }} losses</p>
+                            <p class="">{{ player.wins }} wins / {{ player.losses }} losses</p>
                         </div>
                     </div>
                     <div class="mb-4">
-                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                        <div class="flex justify-between text-sm  mb-1">
                             <span>Win Rate</span>
                             <span>{{ player.win_rate }}%</span>
                         </div>
@@ -107,22 +107,22 @@ import { useRouter } from 'vue-router';
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <div class="text-center p-2 bg-blue-50 rounded-md">
                             <div class="font-semibold text-blue-600">{{ player.points }}</div>
-                            <div class="text-gray-600">Season Points</div>
+                            <div class="">Season Points</div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favorite_deck }}</div>
-                            <div class="text-gray-600">Favorite Deck</div>
+                            <div class="">Favorite Deck</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="card rounded-xl shadow-md p-6">
                     <h3 class="text-xl font-semibold mb-4">Points</h3>
                     <canvas ref="winChart" width="400" height="250"></canvas>
                 </div>
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="card rounded-xl shadow-md p-6">
                     <h3 class="text-xl font-semibold mb-4">Colour Identity Popularity</h3>
                     <canvas ref="colourChart" width="400" height="250"></canvas>
                 </div>
@@ -131,45 +131,44 @@ import { useRouter } from 'vue-router';
 
 
 
-            <!-- Modal -->
             <div v-if="selectedMatch" class="fixed inset-0 z-50">
                 <div class="modal-backdrop" @click="selectedMatch = null"></div>
                 <div class="modal-content">
-                    <button @click="selectedMatch = null" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                    <button @click="selectedMatch = null" class="absolute top-4 right-4  hover:">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
 
                     <div class="pb-3 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Match Details</h3>
+                        <h3 class="text-lg font-semibold ">Match Details</h3>
                     </div>
 
                     <div class="mt-4 space-y-3">
                         
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Date</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.date }}</p>
+                            <label class="block text-sm font-medium ">Date</label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.date }}</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Format</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.format }}</p>
+                            <label class="block text-sm font-medium ">Format</label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.format }}</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Bracket</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.bracket }}</p>
+                            <label class="block text-sm font-medium ">Bracket</label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.bracket }}</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Total Turns</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.totalTurns }}</p>
+                            <label class="block text-sm font-medium ">Total Turns</label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.totalTurns }}</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Players</label>
+                            <label class="block text-sm font-medium ">Players</label>
                             <div class="mt-2 space-y-2">
                                 <div 
                                     v-for="player in selectedMatch.players" 
@@ -184,7 +183,7 @@ import { useRouter } from 'vue-router';
                                     {{ getInitials(player.user?.name || player.name) }}
                                     
                                     </span>
-                                    <span class="text-sm text-gray-900">
+                                    <span class="text-sm ">
                                     {{ player.user?.name || player.name }} playing {{ player.deck.deck_name }} - 
                                     <span v-show="player.is_winner" class="text-green-600">🏆 with {{ player.final_life }}hp</span>
                                     <span v-show="!player.is_winner" class="text-red-600"> Lost on turn {{ player.turn_lost }} at {{ player.final_life }}hp</span>
@@ -195,30 +194,30 @@ import { useRouter } from 'vue-router';
                     </div>
 
                     <div class="flex justify-end pt-4 mt-4 border-t border-gray-200">
-                        <button @click="selectedMatch = null" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                        <button @click="selectedMatch = null" class="px-4 py-2 bg-gray-200  rounded hover:bg-gray-300">
                             Close
                         </button>
                     </div>
                 </div>
             </div>
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Recent Matches</h2>
-            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-12">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <h2 class="text-2xl font-semibold card mb-6">Recent Matches</h2>
+            <div class="card rounded-xl shadow-md overflow-hidden mb-12">
+                <table class="card min-w-full divide-y divide-gray-200">
+                    <thead class="">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Format</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Players</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Winner</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Format</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Players</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Winner</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="card divide-y divide-gray-200">
                         <tr v-for="match in statistics.recent_matches || []" :key="match.id" 
                             @click="openMatchModal(match)"
                             class="cursor-pointer hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ match.date }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ match.format }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.format }}</td>
+                            <td class="px-6 py-4 text-sm ">
                             <div class="flex -space-x-2">
                                 <span v-for="player in match.players" :key="player.id || player.user.id" 
                                     class="h-8 w-8 rounded-full bg-blue-100 border-2 border-white text-xs flex items-center justify-center font-semibold">
@@ -556,5 +555,9 @@ export default {
   background-color: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card {
+    background-color: var(--color-background);
 }
 </style>

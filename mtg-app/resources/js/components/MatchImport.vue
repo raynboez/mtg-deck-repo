@@ -11,7 +11,6 @@ import { X, XCircle } from 'lucide-vue-next';
         <h2 class="header text-2xl font-semibold text-center mb-6 pb-4 border-b border-border">Record MTG Match</h2>
 
         <form @submit.prevent="submitMatch" class="space-y-6">
-            <!-- Move date played and format here -->
             <div class="match-details grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="form-group">
                     <label for="date-played" class="block text-sm font-medium mb-1">Date Played</label>
@@ -38,7 +37,6 @@ import { X, XCircle } from 'lucide-vue-next';
                 
                 
 
-                <!-- Add bracket dropdown -->
                 <div class="form-group">
                     <label for="bracket" class="block text-sm font-medium mb-1">Bracket</label>
                     <select id="bracket" v-model="matchDetails.bracket" class="w-full p-2 border border-input rounded-md bg-background" required>
