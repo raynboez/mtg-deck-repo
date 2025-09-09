@@ -40,7 +40,7 @@ class StatsController extends Controller
             $query->where('bracket', $bracket);
         }
 
-        $matches = $query->get();
+        $matches = $query->orderBy('created_at')->get();
 
         $stats = $this->calculateStatistics($matches);
 
@@ -77,8 +77,10 @@ class StatsController extends Controller
         $playerStats = [];
         $bracketStats = [];
         $colourDistribution = [];
-
+        $labels = [];
+        $datasets = [];
         foreach ($matches as $match) {
+            $labels[] = $match->played_at;
             $totalParticipants += $match->participants->count();
             $totalTurns+=$match->total_turns;
             if (isset($match->bracket)) {
@@ -88,12 +90,16 @@ class StatsController extends Controller
                 }
                 $bracketStats[$bracket]++;
             }
-
-            foreach ($match->participants as $participant) {
+            $position = 0;
+            foreach ($match->participants->sortByDesc('turn_lost') as $participant) {
+                $points = max(0, 2 - $position);
+                if($participant->is_winner){
+                    $points = 3;
+                }
+                
                 $userId = $participant->user_id;
                 Log::info($participant->user);
                 $userName = $participant->user->name ?? 'Unknown';
-
                 if (!isset($playerStats[$userId])) {
                     $playerStats[$userId] = [
                         'user_id' => $userId,
@@ -104,9 +110,10 @@ class StatsController extends Controller
                         'decks' => [],
                         'total_starting_life' => 0,
                         'total_final_life' => 0,
+                        'points' => 0,
                     ];
                 }
-
+                $playerStats[$userId]['points'] += $points;
                 $playerStats[$userId]['total_games']++;
                 $playerStats[$userId]['total_starting_life'] += $participant->starting_life;
                 $playerStats[$userId]['total_final_life'] += $participant->final_life;
@@ -116,6 +123,19 @@ class StatsController extends Controller
                 } else {
                     $playerStats[$userId]['losses']++;
                 }
+
+                if (!isset($datasets[$userId])) {
+                    $datasets[$userId] = [
+                        'label' => $userName,
+                        'data' => [],
+                        'tension' => 0.3
+                    ];
+                }
+                while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
+                    $datasets[$userId]['data'][] = 0;
+                }
+                
+                $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
 
                 if ($participant->deck_id) {
                     $deckName = $participant->deck->deck_name ?? 'Unknown Deck';
@@ -159,6 +179,8 @@ class StatsController extends Controller
 
         return [
             'total_matches' => $totalMatches,
+            'labels' => $labels,
+            'datasets' => $datasets,
             'average_players_per_game' => $totalMatches > 0 ? round($totalParticipants / $totalMatches, 1) : 0,
             'average_turns_per_game' => $totalMatches > 0 ? round($totalTurns / $totalMatches, 1) : 0,
             'player_stats' => array_values($playerStats),

@@ -106,8 +106,8 @@ import { useRouter } from 'vue-router';
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <div class="text-center p-2 bg-blue-50 rounded-md">
-                            <div class="font-semibold text-blue-600">{{ player.avg_final_life }}</div>
-                            <div class="text-gray-600">Avg. Life</div>
+                            <div class="font-semibold text-blue-600">{{ player.points }}</div>
+                            <div class="text-gray-600">Season Points</div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favorite_deck }}</div>
@@ -119,7 +119,7 @@ import { useRouter } from 'vue-router';
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold mb-4">Win Distribution</h3>
+                    <h3 class="text-xl font-semibold mb-4">Points</h3>
                     <canvas ref="winChart" width="400" height="250"></canvas>
                 </div>
                 <div class="bg-white rounded-xl shadow-md p-6">
@@ -295,7 +295,6 @@ export default {
                 const response = await axios.get(url);
                 this.statistics = response.data.statistics;
                 this.loading = false;
-                
                 this.$nextTick(() => {
                     this.initCharts();
                 });
@@ -309,22 +308,28 @@ export default {
         initCharts() {
             if (this.winChart) this.winChart.destroy();
             if (this.colourChart) this.colourChart.destroy();
-            
+            const datasetsArray = Object.values(this.statistics.datasets);
             if (this.statistics.player_stats && this.statistics.player_stats.length > 0) {
                 const winCtx = this.$refs.winChart.getContext('2d');
                 this.winChart = new Chart(winCtx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
-                        labels: this.statistics.player_stats.map(p => p.name),
-                        datasets: [{
-                            data: this.statistics.player_stats.map(p => p.wins)
-                        }]
+                        labels: this.statistics.labels,
+                        datasets: 
+                            datasetsArray
+                        
                     },
                     options: {
                         responsive: true,
                         plugins: {
                             legend: {
-                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: false,
+                            },
+                            y: {
                             }
                         }
                     }
