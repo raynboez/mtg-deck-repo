@@ -42,7 +42,7 @@ import { useRouter } from 'vue-router';
                         <label class="block text-sm font-medium  mb-1">Format</label>
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option value="all">All Formats</option>
-                            <option value="Gulag Commander - Season 0">Gulag Commander</option>
+                            <option value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
                             <option value="Casual Commander">Casual Commander</option>
                             <option value="Custom Game">Custom Game</option>
                         </select>
@@ -87,7 +87,7 @@ import { useRouter } from 'vue-router';
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 <div v-for="player in statistics.player_stats || []" :key="player.user_id" class="card rounded-xl shadow-md p-6">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 border-2 border-white text-black flex items-center justify-center text-xl font-bold">
                             {{ getInitials(player.name) }}
                         </div>
                         <div class="ml-4">
@@ -107,11 +107,11 @@ import { useRouter } from 'vue-router';
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <div class="text-center p-2 bg-blue-50 rounded-md">
                             <div class="font-semibold text-blue-600">{{ player.points }}</div>
-                            <div class="">Season Points</div>
+                            <div class="text-black">Season Points</div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favorite_deck }}</div>
-                            <div class="">Favorite Deck</div>
+                            <div class="text-black">Favorite Deck</div>
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@ import { useRouter } from 'vue-router';
                         
                         <div>
                             <label class="block text-sm font-medium ">Players</label>
-                            <div class="mt-2 space-y-2">
+                            <div class="mt-2 space-y-2 text-black">
                                 <div 
                                     v-for="player in selectedMatch.players" 
                                     :key="player.id || player.user.id" 
@@ -214,13 +214,13 @@ import { useRouter } from 'vue-router';
                     <tbody class="card divide-y divide-gray-200">
                         <tr v-for="match in statistics.recent_matches || []" :key="match.id" 
                             @click="openMatchModal(match)"
-                            class="cursor-pointer hover:bg-gray-50 transition-colors">
+                            class="cursor-pointer hover:bg-gray-500 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.date }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.format }}</td>
                             <td class="px-6 py-4 text-sm ">
                             <div class="flex -space-x-2">
                                 <span v-for="player in match.players" :key="player.id || player.user.id" 
-                                    class="h-8 w-8 rounded-full bg-blue-100 border-2 border-white text-xs flex items-center justify-center font-semibold">
+                                    class="h-8 w-8 rounded-full bg-blue-100 border-2 border-white text-black text-xs flex items-center justify-center font-semibold">
                                 {{ getInitials(player.user?.name || player.name) }}
                                 </span>
                             </div>
@@ -247,7 +247,7 @@ export default {
             error: null,
             filters: {
                 period: 'all',
-                format: 'all',
+                format: 'Gulag Commander - Season 0',
                 bracket: 'all',
                 player: 'all'
             },
@@ -347,27 +347,27 @@ export default {
                     'Dimir': 'UB',
                     'Rakdos': 'BR',
                     'Gruul': 'RG',
-                    'Selesnya': 'GW',
+                    'Selesnya': 'WG',
                     'Orzhov': 'WB',
                     'Izzet': 'UR',
                     'Golgari': 'BG',
-                    'Boros': 'RW',
-                    'Simic': 'GU',
-                    'Bant': 'GWU',
+                    'Boros': 'WR',
+                    'Simic': 'UG',
+                    'Bant': 'WUG',
                     'Esper': 'WUB',
                     'Grixis': 'UBR',
                     'Jund': 'BRG',
-                    'Naya': 'RGW',
+                    'Naya': 'WRG',
                     'Abzan': 'WBG',
-                    'Jeskai': 'URW',
-                    'Sultai': 'BGU',
-                    'Mardu': 'RWB',
-                    'Temur': 'GUR',
+                    'Jeskai': 'WUR',
+                    'Sultai': 'UBG',
+                    'Mardu': 'WBR',
+                    'Temur': 'URG',
                     'Glint': 'WUBR',
                     'Dune': 'UBRG',
-                    'Ink': 'BRGW',
-                    'Witch': 'RGWU',
-                    'Yore': 'GWUB',
+                    'Ink': 'WBRG',
+                    'Witch': 'WURG',
+                    'Yore': 'WUBG',
                     'Five-Color': 'WUBRG',
                     'Colorless': 'C'
                 };
@@ -541,7 +541,7 @@ export default {
 
 .modal-content {
   position: relative;
-  background-color: rgba(255, 255, 255);
+  background-color: var(--color-background);
   margin: 2rem auto;
   padding: 1.5rem;
   border-radius: 0.5rem;

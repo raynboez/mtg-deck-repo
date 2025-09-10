@@ -14,7 +14,7 @@ use App\Services\ScryfallService;
 
 class DeckImportController extends Controller
 {
-
+    
     protected $scryfall;
 
     public function __construct(ScryfallService $scryfall)
@@ -24,6 +24,7 @@ class DeckImportController extends Controller
 
     public function import(Request $request)
     {
+        set_time_limit(0);
         $request->validate([
             'file'=> 'nullable|file|mimes:csv,txt',
             'text'=> 'nullable|string',
@@ -375,29 +376,29 @@ class DeckImportController extends Controller
         'UB' => 'Dimir',
         'BR' => 'Rakdos',
         'RG' => 'Gruul',
-        'GW' => 'Selesnya',
+        'WU' => 'Selesnya',
         'WB' => 'Orzhov',
         'BG' => 'Golgari',
-        'GU' => 'Simic',
+        'UG' => 'Simic',
         'UR' => 'Izzet',
-        'RW' => 'Boros',
+        'WR' => 'Boros',
         
         'WUB' => 'Esper',
         'UBR' => 'Grixis',
         'BRG' => 'Jund',
-        'RGW' => 'Naya',
-        'GWU' => 'Bant',
+        'WRG' => 'Naya',
+        'WUG' => 'Bant',
         'WBG' => 'Abzan',
-        'URW' => 'Jeskai',
-        'BGU' => 'Sultai',
-        'RWB' => 'Mardu',
-        'GUR' => 'Temur',
+        'WUR' => 'Jeskai',
+        'UBG' => 'Sultai',
+        'WBR' => 'Mardu',
+        'URG' => 'Temur',
         
         'WUBR' => 'Yore-Tiller',
         'UBRG' => 'Glint-Eye',
-        'BRGW' => 'Dune-Brood',
-        'RGWU' => 'Ink-Treader',
-        'GWUB' => 'Witch-Maw',
+        'WBRG' => 'Dune-Brood',
+        'WURG' => 'Ink-Treader',
+        'WUBG' => 'Witch-Maw',
         
         'WUBRG' => 'Five-Color',
         

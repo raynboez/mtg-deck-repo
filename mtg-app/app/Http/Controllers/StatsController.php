@@ -91,14 +91,27 @@ class StatsController extends Controller
                 $bracketStats[$bracket]++;
             }
             $position = 0;
-            foreach ($match->participants->sortByDesc('turn_lost') as $participant) {
-                $points = max(0, 2 - $position);
+            $order_lost = 0;
+            $same_order = 0;
+            foreach ($match->participants->sortByDesc('order_lost') as $participant) {
+                
                 if($participant->is_winner){
                     $points = 3;
                 }
-                
+                else {
+                    if($participant->order_lost == $order_lost){
+                        $same_order++;
+                        $position = $position-$same_order;
+                    }
+                    
+                    $points = max(0, 2 - $position);
+                    $position = $position+1+$same_order;
+                    if(!$participant->order_lost == $order_lost){
+                        $same_order = 0;
+                    }
+                    $order_lost = $participant->order_lost;
+                }
                 $userId = $participant->user_id;
-                Log::info($participant->user);
                 $userName = $participant->user->name ?? 'Unknown';
                 if (!isset($playerStats[$userId])) {
                     $playerStats[$userId] = [
