@@ -80,7 +80,7 @@ class StatsController extends Controller
         $labels = [];
         $datasets = [];
         foreach ($matches as $match) {
-            $labels[] = $match->played_at;
+            $labels[] = $match->played_at->format('d-m-y H:i');
             $totalParticipants += $match->participants->count();
             $totalTurns+=$match->total_turns;
             if (isset($match->bracket)) {
