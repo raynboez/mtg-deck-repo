@@ -38,6 +38,7 @@ export interface User {
 
 export interface Deck {
     deck_name: string;
+    deck_identity: string;
     deck_id: number;
     href: string;
 };

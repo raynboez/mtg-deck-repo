@@ -68,9 +68,9 @@ class DeckController extends Controller
         }
 
         if($personalgames != $games){
-            $deckstats = $wins . "-" . $loss . " (" . $percent . "%). Personal Win-Loss: " . $personalwins . "-" . $personalloss . " (" . $personalpercent . "%)";
+            $deckstats = $wins . "-" . $loss . " (" . $percent . "% of $games).\nPersonal Win-Loss: " . $personalwins . "-" . $personalloss . " (" . $personalpercent . "% of $personalgames)";
         } else {
-            $deckstats = $wins . "-" . $loss . " (" . $percent . "%)";
+            $deckstats = $wins . "-" . $loss . " (" . $percent . "% of $games)";
         }
         
         return response()->json(

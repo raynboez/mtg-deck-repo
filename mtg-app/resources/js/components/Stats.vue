@@ -338,11 +338,11 @@ export default {
                 const colourCtx = this.$refs.colourChart.getContext('2d');
                 
                 const factionColorMap = {
-                    'White': 'W',
-                    'Blue': 'U', 
-                    'Black': 'B',
-                    'Red': 'R',
-                    'Green': 'G',
+                    'MonoWhite': 'W',
+                    'MonoBlue': 'U', 
+                    'MonoBlack': 'B',
+                    'MonoRed': 'R',
+                    'MonoGreen': 'G',
                     'Azorius': 'WU',
                     'Dimir': 'UB',
                     'Rakdos': 'BR',

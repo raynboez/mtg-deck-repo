@@ -14,9 +14,68 @@ import RecordMatchButton from './RecordMatchButton.vue';
 </script>
 <script lang="ts">
 
+const factionToManaSymbolsMap: Record<string, string[]> = {
+        'bant':   ['{W}','{U}','{G}'],
+        'esper':  ['{W}','{U}','{B}'],
+        'grixis': ['{U}','{B}','{R}'],
+        'jund':   ['{B}','{R}','{G}'],
+        'naya':   ['{W}','{R}','{G}'],      
+        'abzan':  ['{W}','{B}','{G}'],
+        'jeskai': ['{W}','{U}','{R}'],
+        'sultai': ['{U}','{B}','{G}'],
+        'mardu':  ['{W}','{B}','{R}'],
+        'temur':  ['{B}','{R}','{G}'],
+        'wubr':   ['{W}','{U}','{B}','{R}'],
+        'ubrg':   ['{U}','{B}','{R}','{G}'],
+        'wbrg':   ['{W}','{B}','{R}','{G}'],
+        'wurb':   ['{W}','{U}','{R}','{G}'],
+        'wubg':   ['{W}','{U}','{B}','{G}'],        
+        'FiveColor[': ['{W}','{U}','{B}','{R}','{G}'],
+        'Five-Color': ['{W}','{U}','{B}','{R}','{G}'],
+        'Colorless': ['{C}'],
+  'azorius': ['{W}', '{U}'],
+  'dimir': ['{U}', '{B}'],
+  'rakdos': ['{B}', '{R}'],
+  'gruul': ['{R}', '{G}'],
+  'selesnya': ['{W}', '{G}'],
+  'orzhov': ['{W}', '{B}'],
+  'izzet': ['{U}', '{R}'],
+  'golgari': ['{B}', '{G}'],
+  'boros': ['{W}', '{R}'],
+  'simic': ['{U}', '{G}'],
+  'white': ['{W}'],
+  'blue': ['{U}'],
+  'black': ['{B}'],
+  'red': ['{R}'],
+  'green': ['{G}'],
+  'colorless': ['{C}']
+};
+function factionToManaSymbols(factionName: string): string[] {
+  const normalizedName = factionName.toLowerCase().trim();
+  return factionToManaSymbolsMap[normalizedName];
+}
 
+// Function to display mana symbols (for use with mana font)
+function displayManaSymbols(factionName: string): string {
+  try {
+    const symbols = factionToManaSymbols(factionName);
+    return symbols.join(' ');
+  } catch (error) {
+    return `Unknown faction: ${factionName}`;
+  }
+}
 
-
+// Function to get HTML with mana font classes
+function getManaSymbolsHTML(factionName: string): string {
+  try {
+    const symbols = factionToManaSymbols(factionName);
+    return symbols.map(symbol => 
+      `<span class="mana ${symbol.replace(/[{}]/g, '').toLowerCase()}">${symbol}</span>`
+    ).join(' ');
+  } catch (error) {
+    return `<span>Unknown faction: ${factionName}</span>`;
+  }
+}
 export default {
     data()
     {
@@ -58,10 +117,10 @@ export default {
                 if(user)
                 {
                     user.decks = response.data.map((deck: any) => ({
+                        deck_identity: displayManaSymbols(deck.colour_identity),
                         deck_name: deck.deck_name,
                         deck_id: deck.deck_id,
-                        href: '/deck_import',
-                        icon: LayoutGrid,
+                        icon: getManaSymbolsHTML(deck.colour_identity),
                     }));
                 }
             } 
@@ -85,7 +144,6 @@ export default {
         {
             const user = this.users.find(u => u.id === userId);
             if (!user?.decks) return [];
-            
             return user.decks.map(deck => ({
                 title: deck.deck_name,
                 href: `/deck/${deck.deck_id}`,
@@ -93,6 +151,7 @@ export default {
             }));
         }
     },
+    
     mounted() {
         this.fetchUsers();
     }
