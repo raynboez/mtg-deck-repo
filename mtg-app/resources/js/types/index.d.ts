@@ -52,6 +52,8 @@ export interface Card {
     number: number;
 };
 
+
+
 export interface PageProps {
     deck: {
       id: number;

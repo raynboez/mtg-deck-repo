@@ -52,6 +52,16 @@ class DeckController extends Controller
             array_push($cardArr, $cardData);
         }
 
+                usort($cardArr, function($a, $b) {
+            return strcmp($a->card_name, $b->card_name);
+        });
+
+        // Sort potential commanders alphabetically too
+        usort($potentialCommanderArr, function($a, $b) {
+            return strcmp($a->card_name, $b->card_name);
+        });
+
+
         $personalwins = count(DB::table('match_participants')->where('user_id', $user)->where('deck_id', $deckId)->where('is_winner', 1)->get());
         $personalgames = count(DB::table('match_participants')->where( 'user_id', $user)->where('deck_id', $deckId)->get());
         $personalloss = $personalgames - $personalwins;
