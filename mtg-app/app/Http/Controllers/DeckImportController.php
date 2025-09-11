@@ -366,17 +366,17 @@ class DeckImportController extends Controller
 
 
     protected $factionNames = [
-        'W' => 'Monowhite',
-        'U' => 'Monoblue',
-        'B' => 'Monoblack',
-        'R' => 'Monored',
-        'G' => 'Monogreen',
+        'W' => 'MonoWhite',
+        'U' => 'MonoBlue',
+        'B' => 'MonoBlack',
+        'R' => 'MonoRed',
+        'G' => 'MonoGreen',
         
         'WU' => 'Azorius',
         'UB' => 'Dimir',
         'BR' => 'Rakdos',
         'RG' => 'Gruul',
-        'WU' => 'Selesnya',
+        'WG' => 'Selesnya',
         'WB' => 'Orzhov',
         'BG' => 'Golgari',
         'UG' => 'Simic',
