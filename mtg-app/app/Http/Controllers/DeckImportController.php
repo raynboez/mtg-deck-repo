@@ -274,7 +274,7 @@ class DeckImportController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'commanders' => 'required|array',
+            'commanders' => 'array',
             'power_level' => 'required|integer|between:1,5'
         ]);
         
@@ -285,6 +285,9 @@ class DeckImportController extends Controller
                 'power_level' => $validated['power_level']
             ]
             );
+            DB::table('deck_cards')
+        ->where('deck_id', $id)
+        ->update(['is_commander' => false]);
         $identityArray = [];
         foreach ($validated['commanders'] as $commanderId) {
             DB::table('deck_cards')->where('card_id', $commanderId)->update(

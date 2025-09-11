@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed, Component } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
 import { RefreshCw, CircleAlert, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
 import axios from 'axios';
+import DeckAssignmentModal from './DeckAssignmentModal.vue';
+import Deck from '@/pages/Deck.vue';
+
 
 interface Card {
   card_id: number;
@@ -37,9 +40,11 @@ const props = defineProps<{
   cards: Card[];
   reverse: Card[];
   commanders: number[];
+  potentialCommanders: number[];
   deckstats: string | null;
   exportText: string;
 }>();
+
 
 
 const hoveredCard = ref<Card | null>(null);
@@ -76,6 +81,26 @@ const CARD_TYPE_ORDER = {
   ]
 };
 
+const showAssignmentModal = ref(false);
+
+const openEditModal = () => {
+  showAssignmentModal.value = true;
+};
+
+const saveDeckDetails = async (details: any) => {
+  try {
+                const response = await axios.put(`/api/decks/${props.deck.deck_id}`, {
+                name: details.name,
+                description: details.description,
+                commanders: details.commanders,
+                power_level: details.power_level
+                });
+                
+                window.location.href = `/deck/${props.deck.deck_id}`;
+            } catch (error) {
+                console.error('Failed to save deck details:', error);
+            }
+};
 
 const reverseCardsMap = computed(() => {
   const map: Record<number, Card> = {};
@@ -302,17 +327,35 @@ async function copyDeckToClipboard() {
           COPY DECK
         </button>
         
-        <button class="
-          bg-gray-200 hover:bg-gray-300 
-          text-gray-700 
-          font-medium 
-          h-9 px-4
-          rounded-md
-          transition-all duration-200
-          shadow-sm
-          focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
-          disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-200
-        " disabled>
+        <button 
+          class="
+            bg-gray-200 hover:bg-gray-300 
+            text-gray-700 
+            font-medium 
+            h-9 px-4
+            rounded-md
+            transition-all duration-200
+            shadow-sm
+            focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
+          "
+          @click="openEditModal"
+        >
+          EDIT DECK DETAILS
+        </button>
+
+        <button 
+          class="
+            bg-gray-200 hover:bg-gray-300 
+            text-gray-700 
+            font-medium 
+            h-9 px-4
+            rounded-md
+            transition-all duration-200
+            shadow-sm
+            focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
+          "
+          @click="openEditModal"
+        >
           EDIT DECK
         </button>
       </div>
@@ -403,6 +446,15 @@ async function copyDeckToClipboard() {
         </div>
       </div>
     </div>
+    <DeckAssignmentModal
+            v-if="showAssignmentModal"
+            :show="showAssignmentModal"
+            :potential-commanders="potentialCommanders"
+            :potential-companions="[]"
+            :initial-deck-data="deck"
+            @close="showAssignmentModal = false"
+            @save="saveDeckDetails"
+        />
   </div>
 </template>
 

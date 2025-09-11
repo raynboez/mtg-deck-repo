@@ -32,6 +32,7 @@ class DeckController extends Controller
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
         $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
         $commanderArr = array();
+        $potentialCommanderArr = array();
         foreach($commanders as $commander){
             array_push($commanderArr, $commander->card_id);
         }
@@ -40,6 +41,9 @@ class DeckController extends Controller
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
+            if(str_contains($cardData->type_line,'Legendary')){
+                array_push($potentialCommanderArr, $cardData);
+            }
             if($cardData->reverse_card_id)
             {   
                 $reverseCardData = DB::table('reverse_cards')->where('face_card_id', $card->card_id)->first();
@@ -79,6 +83,7 @@ class DeckController extends Controller
                 'cards' => $cardArr,
                 'reverse' => $reverse,
                 'commanders' => $commanderArr,
+                'potentialCommanders' => $potentialCommanderArr,
                 'deckstats' => $deckstats
             ]
         );

@@ -24,6 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 :cards="cards"
                 :reverse="reverse"
                 :commanders=commanders
+                :potentialCommanders=potentialCommanders
                 :deckstats="deckstats"
                 :exportText="exportText" 
                 />
@@ -49,6 +50,7 @@ export default {
       cards: null,
       reverse: null,
       commanders: [],
+      potentialCommanders: [],
       deckstats: null,
       exportText: ''
     }
@@ -66,6 +68,7 @@ export default {
         this.cards = response.data.cards
         this.reverse = response.data.reverse
         this.commanders = Array.isArray(response.data.commanders) ? response.data.commanders : JSON.parse(response.data.commanders);
+        this.potentialCommanders = Array.isArray(response.data.potentialCommanders) ?response.data.potentialCommanders: JSON.parse(response.data.potentialCommanders)
         this.deckstats = response.data.deckstats
         this.exportText = response.data.export
       } catch (error) {
