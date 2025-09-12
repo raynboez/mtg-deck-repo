@@ -32,21 +32,36 @@ class DeckController extends Controller
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
         $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
         $commanderArr = array();
+        $potentialCommanderArr = array();
         foreach($commanders as $commander){
             array_push($commanderArr, $commander->card_id);
         }
+        $cardCount = 0;
         $cardArr = array();
         $reverse = array();
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
+            if(str_contains($cardData->type_line,'Legendary')){
+                array_push($potentialCommanderArr, $cardData);
+            }
             if($cardData->reverse_card_id)
             {   
                 $reverseCardData = DB::table('reverse_cards')->where('face_card_id', $card->card_id)->first();
                 array_push($reverse, $reverseCardData);
             }
             array_push($cardArr, $cardData);
+            $cardCount+=$cardData->quantity;
         }
+
+                usort($cardArr, function($a, $b) {
+            return strcmp($a->card_name, $b->card_name);
+        });
+
+        usort($potentialCommanderArr, function($a, $b) {
+            return strcmp($a->card_name, $b->card_name);
+        });
+
 
         $personalwins = count(DB::table('match_participants')->where('user_id', $user)->where('deck_id', $deckId)->where('is_winner', 1)->get());
         $personalgames = count(DB::table('match_participants')->where( 'user_id', $user)->where('deck_id', $deckId)->get());
@@ -79,7 +94,9 @@ class DeckController extends Controller
                 'cards' => $cardArr,
                 'reverse' => $reverse,
                 'commanders' => $commanderArr,
-                'deckstats' => $deckstats
+                'potentialCommanders' => $potentialCommanderArr,
+                'deckstats' => $deckstats,
+                'cardcount' => $cardCount
             ]
         );
     }

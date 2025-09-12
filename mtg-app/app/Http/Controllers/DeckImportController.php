@@ -6,6 +6,7 @@ use App\Models\ReverseCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use \Illuminate\Support\Str;
 use App\Models\Deck;
 use App\Models\Card;
 use App\Models\DeckCard;
@@ -56,7 +57,6 @@ class DeckImportController extends Controller
             try
             {
                 $card = $this->findCard($cardData);
-                Log::info($card);
                 if(!$card)
                 {
                     $failedCards[] = 
@@ -204,14 +204,12 @@ class DeckImportController extends Controller
             $cardData['set'],
             $cardData['collector_number']
         );
-        Log::info($cardData['name']);
-        Log::info($scryfallCard);
         if(!$scryfallCard)
         {
             return null;
         }
-        
-        if(isset($scryfallCard['card_faces'])){
+
+        if(isset($scryfallCard['card_faces']) && !(strcmp($scryfallCard['layout'], "adventure")==0)){
             $faceCard = Card::create([
                 'card_name' =>$scryfallCard['card_faces'][0]['name'],
                 'mana_cost' => $scryfallCard['card_faces'][0]['mana_cost'],
@@ -247,6 +245,24 @@ class DeckImportController extends Controller
             return $faceCard;
         }
 
+        if((strcmp($scryfallCard['layout'], "adventure")==0)){
+            return Card::create([
+            'card_name' =>$scryfallCard['name'],
+            'mana_cost' => $scryfallCard['mana_cost'],
+            'cmc' => $scryfallCard['cmc'],
+            'type_line' => $scryfallCard['type_line'],
+            'oracle_text' => $scryfallCard['card_faces'][0]['oracle_text'] . ' // ' . $scryfallCard['card_faces'][1]['oracle_text'],
+            'colours' => implode(',' ,$scryfallCard['colors']),
+            'colour_identity' => implode(',' ,$scryfallCard['color_identity']),
+            'image_url' => $scryfallCard['image_uris']['normal'],
+            'scryfall_uri' => $scryfallCard['scryfall_uri'],
+            'set' => $scryfallCard['set'],
+            'collector_number' => $scryfallCard['collector_number'],
+            'is_gamechanger' => $scryfallCard['game_changer'],
+            'oracle_id' => $scryfallCard['oracle_id']
+        ]);
+        }
+
         return Card::create([
             'card_name' =>$scryfallCard['name'],
             'mana_cost' => $scryfallCard['mana_cost'],
@@ -264,19 +280,104 @@ class DeckImportController extends Controller
         ]);
     }
 
-    
+    public function addCard(Request $request, $id){
+        $validated = $request->validate([
+            'scryfallData' => 'required',
+            'amount' => 'required|integer'
+        ]);
+        $deck = Deck::findOrFail($id);
+        $cardData = $validated['scryfallData'];
+        $card = $this->findCard($cardData);
+        if(!$card)
+                {
+                    response()->json([
+                'success' => false,
+                'message' => 'Failed to add card to deck',
+                'error' => 'Internal server error'
+                    ], 500);            
+        
+                }
+        
+        
+        $existingDeckCard = DeckCard::where('deck_id', $deck->deck_id)
+            ->where('card_id', $card->card_id)
+            ->first();
+
+        if ($existingDeckCard) {
+            $newQuantity = $existingDeckCard->quantity + $validated['amount'];
+            
+            $existingDeckCard->update([
+                'quantity' => $newQuantity
+            ]);
+            
+            $success = $existingDeckCard;
+        } else {
+            $success = DeckCard::create([
+                'deck_id' => $deck->deck_id,
+                'card_id' => $card->card_id,
+                'is_main_deck' => true,
+                'quantity' => $validated['amount']
+            ]);
+            
+        }
+        if($success){
+            return response()->json([
+                'success' => true,
+                'message' => 'Card successfully added',
+                'data' => [
+                    'card' => $card->card_name,
+                    'quantity' =>  $validated['amount'],
+                    'action' => 'added'
+                ]
+            ], 201);
+        } else{
+            {
+                    response()->json([
+                        'success' => false,
+                        'message' => 'Failed to add card to deck',
+                        'error' => 'Internal server error'
+                    ], 500);            
+                }  
+        }
+        
+    }
+
+
+    public function removeCard(Request $request, $id){
+        $validated = $request->validate([
+            'card_id' => 'required|integer',
+            'amount' => 'required|integer'
+        ]);
+        $deck = Deck::findOrFail($id);
+        $card = Card::findOrFail($validated['card_id']);
+        $deckcard = DeckCard::where('deck_id', $deck->deck_id)->where('card_id', $card->card_id)->firstOrFail();
+        if($deckcard->quantity > $validated['amount']){
+            $deckcard->quantity= $deckcard->quantity - $validated['amount'];
+            $deckcard->save();
+        } else {
+            DeckCard::where('deck_id', $deck->deck_id)->where('card_id', $card->card_id)->delete();
+        }
+        return response()->json([
+                'success' => true,
+                'message' => 'Card successfully removed',
+                'data' => [
+                    'card' => $card->card_name,
+                    'quantity' =>  $validated['amount'],
+                    'action' => 'removed'
+                ]
+            ], 201);
+    }
 
     public function update(Request $request, $id)
     {
-        Log::info($id);
-        $deck = Deck::findOrFail($id);
         
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'commanders' => 'required|array',
+            'commanders' => 'array',
             'power_level' => 'required|integer|between:1,5'
         ]);
+        $deck = Deck::findOrFail($id);
         
         DB::table('decks')->where('deck_id', $id)->update(
             [
@@ -285,6 +386,9 @@ class DeckImportController extends Controller
                 'power_level' => $validated['power_level']
             ]
             );
+        DB::table('deck_cards')
+            ->where('deck_id', $id)
+            ->update(['is_commander' => false]);
         $identityArray = [];
         foreach ($validated['commanders'] as $commanderId) {
             DB::table('deck_cards')->where('card_id', $commanderId)->update(
@@ -295,7 +399,6 @@ class DeckImportController extends Controller
             $cardIdentity = $commander->colour_identity ? explode(',', $commander->colour_identity) : [];
             $identityArray = array_unique(array_merge($identityArray, $cardIdentity));
         }
-        Log::info($identityArray);
         $deck->colour_identity = $this->getIdentity($identityArray);
 
         $deck->save();

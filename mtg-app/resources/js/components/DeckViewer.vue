@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed, Component } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
 import { RefreshCw, CircleAlert, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
 import axios from 'axios';
+import DeckAssignmentModal from './DeckAssignmentModal.vue';
+import AddCardModal from './AddCardModal.vue'; 
+import RemoveCardModal from './RemoveCardModal.vue'; 
 
 interface Card {
   card_id: number;
@@ -37,9 +40,11 @@ const props = defineProps<{
   cards: Card[];
   reverse: Card[];
   commanders: number[];
+  potentialCommanders: number[];
   deckstats: string | null;
-  exportText: string;
+  cardcount: number | null;
 }>();
+
 
 
 const hoveredCard = ref<Card | null>(null);
@@ -76,6 +81,43 @@ const CARD_TYPE_ORDER = {
   ]
 };
 
+const showAssignmentModal = ref(false);
+const showAddCardModal = ref(false);
+const showRemoveCardModal = ref(false);
+
+const openEditModal = () => {
+  showAssignmentModal.value = true;
+};
+const openAddCardModal = () => {
+  showAddCardModal.value = true;
+};
+
+const openRemoveCardModal = () => {
+  showRemoveCardModal.value = true;
+};
+
+const closeAddCardModal = () => {
+  showAddCardModal.value = false;
+};
+
+const closeRemoveCardModal = () => {
+  showRemoveCardModal.value = false;
+};
+
+const saveDeckDetails = async (details: any) => {
+  try {
+                const response = await axios.put(`/api/decks/${props.deck.deck_id}`, {
+                name: details.name,
+                description: details.description,
+                commanders: details.commanders,
+                power_level: details.power_level
+                });
+                
+                window.location.href = `/deck/${props.deck.deck_id}`;
+            } catch (error) {
+                console.error('Failed to save deck details:', error);
+            }
+};
 
 const reverseCardsMap = computed(() => {
   const map: Record<number, Card> = {};
@@ -256,6 +298,67 @@ async function copyDeckToClipboard() {
   }
 }
 
+
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastTimeout = ref<number | null>(null);
+
+const showToastNotification = (message: string) => {
+  toastMessage.value = message;
+  showToast.value = true;
+  
+  if (toastTimeout.value) {
+    clearTimeout(toastTimeout.value);
+  }
+  
+  toastTimeout.value = setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+};
+
+
+
+const addCardToDeck = async (cardData: any, quantity: number) => {
+  try {
+    console.log(cardData)
+    
+    const response = await axios.put(`/api/decks/${props.deck.deck_id}/add`, {
+      scryfallData:cardData, 
+      amount: quantity
+    });
+    if (response.status === 201) {
+      showToastNotification(`Added ${quantity} ${quantity === 1 ? 'copy' : 'copies'} of ${cardData.card_name}`);
+      closeAddCardModal();
+      
+      window.location.reload(); 
+    }
+  } catch (error) {
+    console.error('Failed to add card:', error);
+    showToastNotification('Error adding card to deck');
+  }
+};
+
+const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: number) => {
+  try {
+    if(!quantity){
+      quantity=1;
+    }
+    const response = await axios.post(`/api/decks/${props.deck.deck_id}/remove`, {
+      card_id:cardId,
+      amount:quantity
+    });
+    
+    if (response.status === 201) {
+      showToastNotification(`Removed ${quantity} ${quantity === 1 ? 'copy' : 'copies'} of ${cardName}`);    
+      closeRemoveCardModal();
+      window.location.reload(); 
+    }
+  } catch (error) {
+    console.error('Failed to remove card:', error);
+    showToastNotification('Error removing card');
+  }
+};
+
 </script>
 <template>
   <div class="deck-viewer">
@@ -264,10 +367,11 @@ async function copyDeckToClipboard() {
         <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }} - Bracket {{ deck.power_level }}</h1>
         <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
         <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
+        <p class="text-muted-foreground mb-6">Cards in Deck: {{ cardcount }}</p>
       </div>
-
+      
       <div class="flex items-center gap-3">
-        <!-- Version Selector -->
+        <!--
         <div class="relative">
           <select class="
             text-sm
@@ -285,8 +389,7 @@ async function copyDeckToClipboard() {
             <option>v3.0</option>
           </select>
         </div>
-        
-        <!-- Buttons -->
+      -->
         <button 
           id="copyDeckBtn"
           class="
@@ -302,19 +405,50 @@ async function copyDeckToClipboard() {
           COPY DECK
         </button>
         
-        <button class="
-          bg-gray-200 hover:bg-gray-300 
-          text-gray-700 
-          font-medium 
+        <button 
+          class="
+            bg-gray-200 hover:bg-gray-300 
+            text-gray-700 
+            font-medium 
+            h-9 px-4
+            rounded-md
+            transition-all duration-200
+            shadow-sm
+            focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
+          "
+          @click="openEditModal"
+        >
+          EDIT DECK DETAILS
+        </button>
+
+        <button 
+        class="
+          bg-green-600 hover:bg-green-700 
+          text-white font-medium 
           h-9 px-4
           rounded-md
           transition-all duration-200
-          shadow-sm
-          focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50
-          disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-gray-200
-        " disabled>
-          EDIT DECK
-        </button>
+          shadow-sm hover:shadow-md
+          focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
+        "
+        @click="openAddCardModal"
+      >
+        ADD CARD
+      </button>
+        <button 
+        class="
+          bg-red-600 hover:bg-red-700 
+          text-white font-medium 
+          h-9 px-4
+          rounded-md
+          transition-all duration-200
+          shadow-sm hover:shadow-md
+          focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+        "
+        @click="openRemoveCardModal"
+      >
+        REMOVE CARD
+      </button>
       </div>
     </div>
 
@@ -403,7 +537,41 @@ async function copyDeckToClipboard() {
         </div>
       </div>
     </div>
+
+    <transition name="toast">
+      <div v-if="showToast" class="toast-notification">
+        <span>{{ toastMessage }}</span>
+        <button class="toast-close" @click="showToast = false">×</button>
+      </div>
+    </transition>
+    <DeckAssignmentModal
+            v-if="showAssignmentModal"
+            :show="showAssignmentModal"
+            :potential-commanders="potentialCommanders"
+            :potential-companions="[]"
+            :initial-deck-data="deck"
+            @close="showAssignmentModal = false"
+            @save="saveDeckDetails"
+        />
+
+        <AddCardModal
+      v-if="showAddCardModal"
+      :show="showAddCardModal"
+      :deck-id="deck.deck_id"
+      @close="closeAddCardModal"
+      @add-card="addCardToDeck"
+    />
+
+    <RemoveCardModal
+      v-if="showRemoveCardModal"
+      :show="showRemoveCardModal"
+      :deck-id="deck.deck_id"
+      :cards="cards"
+      @close="closeRemoveCardModal"
+      @remove-card="removeCardFromDeck"
+    />
   </div>
+  
 </template>
 
 <style scoped>
@@ -422,5 +590,59 @@ async function copyDeckToClipboard() {
 
 .fixed[style*="visibility: hidden"] {
   opacity: 0;
+}
+
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  max-width: 90%;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.toast-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 100%);
+}
+
+.toast-enter-to,
+.toast-leave-from {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 </style>

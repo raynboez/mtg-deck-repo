@@ -91,7 +91,8 @@
 export default {
   props: {
     show: Boolean,
-    potentialCommanders: Array
+    potentialCommanders: Array,
+    initialDeckData: Object
   },
   
   data() {
@@ -113,19 +114,31 @@ export default {
     submitDeckDetails() {
       this.$emit('save', this.deckDetails);
       this.closeModal();
+    },
+    
+    initializeForm() {
+      if (this.initialDeckData) {
+        this.deckDetails = {
+          name: this.initialDeckData.deck_name || '',
+          description: this.initialDeckData.description || '',
+          commanders: [...(this.initialDeckData.commanders || [])],
+          power_level: this.initialDeckData.power_level?.toString() || ''
+        };
+      }
     }
   },
   
   watch: {
     show(newVal) {
       if (newVal) {
-        this.deckDetails = {
-          name: '',
-          description: '',
-          commanders: [],
-          power_level: ''
-        };
+        this.initializeForm();
       }
+    }
+  },
+  
+  mounted() {
+    if (this.show && this.initialDeckData) {
+      this.initializeForm();
     }
   }
 };
