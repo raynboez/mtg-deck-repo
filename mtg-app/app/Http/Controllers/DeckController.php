@@ -36,6 +36,7 @@ class DeckController extends Controller
         foreach($commanders as $commander){
             array_push($commanderArr, $commander->card_id);
         }
+        $cardCount = 0;
         $cardArr = array();
         $reverse = array();
         foreach($deck as $card){
@@ -50,13 +51,13 @@ class DeckController extends Controller
                 array_push($reverse, $reverseCardData);
             }
             array_push($cardArr, $cardData);
+            $cardCount+=$cardData->quantity;
         }
 
                 usort($cardArr, function($a, $b) {
             return strcmp($a->card_name, $b->card_name);
         });
 
-        // Sort potential commanders alphabetically too
         usort($potentialCommanderArr, function($a, $b) {
             return strcmp($a->card_name, $b->card_name);
         });
@@ -94,7 +95,8 @@ class DeckController extends Controller
                 'reverse' => $reverse,
                 'commanders' => $commanderArr,
                 'potentialCommanders' => $potentialCommanderArr,
-                'deckstats' => $deckstats
+                'deckstats' => $deckstats,
+                'cardcount' => $cardCount
             ]
         );
     }

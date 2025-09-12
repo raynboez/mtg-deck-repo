@@ -42,7 +42,7 @@ const props = defineProps<{
   commanders: number[];
   potentialCommanders: number[];
   deckstats: string | null;
-  exportText: string;
+  cardcount: number | null;
 }>();
 
 
@@ -367,6 +367,7 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
         <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }} - Bracket {{ deck.power_level }}</h1>
         <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
         <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
+        <p class="text-muted-foreground mb-6">Cards in Deck: {{ cardcount }}</p>
       </div>
       
       <div class="flex items-center gap-3">
