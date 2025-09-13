@@ -265,7 +265,7 @@ watch(() => props.show, (newVal) => {
 }
 
 .modal-content {
-  background: white;
+  background: var(--color-background);
   border-radius: 8px;
   width: 90%;
   max-width: 800px;
@@ -370,11 +370,11 @@ watch(() => props.show, (newVal) => {
 }
 
 .search-result-card:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-background);
 }
 
 .search-result-card.selected {
-  background-color: #dbeafe;
+  background-color: var(--color-background);
   border-color: #3b82f6;
 }
 
@@ -432,7 +432,7 @@ watch(() => props.show, (newVal) => {
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem;
-  background-color: #f9fafb;
+  background-color: var(--color-background);
   border-radius: 4px;
 }
 
@@ -452,7 +452,7 @@ watch(() => props.show, (newVal) => {
   width: 24px;
   height: 24px;
   border: 1px solid #d1d5db;
-  background-color: white;
+  background-color: var(--color-background);
   border-radius: 4px;
   cursor: pointer;
 }

@@ -163,7 +163,7 @@ const removeCard = () => {
 }
 
 .modal-content {
-  background: white;
+  background: var(--color-background);
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
@@ -203,11 +203,11 @@ const removeCard = () => {
 }
 
 .card-item:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-background);
 }
 
 .card-item.selected {
-  background-color: #dbeafe;
+  background-color: var(--color-background);
   border-color: #3b82f6;
 }
 

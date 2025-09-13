@@ -32,7 +32,7 @@ import { useRouter } from 'vue-router';
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium  mb-1">Time Period</label>
-                        <select v-model="filters.period" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
+                        <select v-model="filters.period" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
                             <option value="all">All Time</option>
                             <option value="month">This Month</option>
                             <option value="week">This Week</option>
@@ -40,7 +40,7 @@ import { useRouter } from 'vue-router';
                     </div>
                     <div>
                         <label class="block text-sm font-medium  mb-1">Format</label>
-                        <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
+                        <select v-model="filters.format" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
                             <option value="all">All Formats</option>
                             <option value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
                             <option value="Casual Commander">Casual Commander</option>
@@ -49,14 +49,14 @@ import { useRouter } from 'vue-router';
                     </div>
                     <div>
                         <label class="block text-sm font-medium  mb-1">Bracket</label>
-                        <select v-model="filters.bracket" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
+                        <select v-model="filters.bracket" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
                             <option value="all">All Brackets</option>
                             <option v-for="n in 5" :value="n">{{ n }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium  mb-1">Player</label>
-                        <select v-model="filters.player" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
+                        <select v-model="filters.player" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
                             <option value="all">All Players</option>
                             <option v-for="player in players" :value="player.id">{{ player.name }}</option>
                         </select>
