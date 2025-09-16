@@ -32,7 +32,7 @@ import { useRouter } from 'vue-router';
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium  mb-1">Time Period</label>
-                        <select v-model="filters.period" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
+                        <select v-model="filters.period" @change="fetchStats" class="w-full text-black p-2 border border-gray-300 rounded-md">
                             <option value="all">All Time</option>
                             <option value="month">This Month</option>
                             <option value="week">This Week</option>
@@ -508,7 +508,6 @@ export default {
 </script>
 
 <style scoped>
-/* Optional: Add some animations for the modal */
 .fixed {
   transition: opacity 0.3s ease;
 }
@@ -559,5 +558,17 @@ export default {
 
 .card {
     background-color: var(--color-background);
+}
+
+.custom-select select {
+    display: inline-block;
+    padding: 4px 3px 3px 5px;
+    margin: 0;
+    font: inherit;
+    outline:none;
+    line-height: 1.2;
+    background: white;
+    color:black;
+    border:0;
 }
 </style>

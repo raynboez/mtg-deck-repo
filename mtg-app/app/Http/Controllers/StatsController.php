@@ -144,8 +144,14 @@ class StatsController extends Controller
                         'tension' => 0.3
                     ];
                 }
+                
                 while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
-                    $datasets[$userId]['data'][] = 0;
+                    if(empty($datasets[$userId]['data'])){
+                        $datasets[$userId]['data'][] = 0;
+                    } else {
+                        $lastVal = end($datasets[$userId]['data']);
+                        $datasets[$userId]['data'][] = $lastVal;
+                    }
                 }
                 
                 $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
