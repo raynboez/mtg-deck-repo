@@ -209,7 +209,7 @@ class DeckImportController extends Controller
             return null;
         }
 
-        if(isset($scryfallCard['card_faces']) && !(strcmp($scryfallCard['layout'], "adventure")==0)){
+        if(isset($scryfallCard['card_faces']) && !(strcmp($scryfallCard['layout'], "adventure")==0) && !(strcmp($scryfallCard['layout'], "split")==0)){
             $faceCard = Card::create([
                 'card_name' =>$scryfallCard['card_faces'][0]['name'],
                 'mana_cost' => $scryfallCard['card_faces'][0]['mana_cost'],
@@ -235,6 +235,41 @@ class DeckImportController extends Controller
                 'colours' => implode(',' ,$scryfallCard['card_faces'][1]['colors']),
                 'colour_identity' => implode(',' ,$scryfallCard['color_identity']),
                 'image_url' => $scryfallCard['card_faces'][1]['image_uris']['normal'],
+                'scryfall_uri' => $scryfallCard['scryfall_uri'],
+                'set' => $scryfallCard['set'],
+                'collector_number' => $scryfallCard['collector_number'],
+                'is_gamechanger' => $scryfallCard['game_changer'],
+                'oracle_id' => $scryfallCard['oracle_id']
+            ]);
+            Card::where('card_id', $faceCard['card_id'])->update(['reverse_card_id' => $reverseCard['card_id']]);
+            return $faceCard;
+        }
+        if(isset($scryfallCard['card_faces']) && (strcmp($scryfallCard['layout'], "split")==0)){
+            $faceCard = Card::create([
+                'card_name' =>$scryfallCard['card_faces'][0]['name'],
+                'mana_cost' => $scryfallCard['card_faces'][0]['mana_cost'],
+                'cmc' => $scryfallCard['cmc'],
+                'type_line' => $scryfallCard['card_faces'][0]['type_line'],
+                'oracle_text' => $scryfallCard['card_faces'][0]['oracle_text'],
+                'colours' => implode(',' ,$scryfallCard['colors']),
+                'colour_identity' => implode(',' ,$scryfallCard['color_identity']),
+                'image_url' => $scryfallCard['image_uris']['normal'],
+                'scryfall_uri' => $scryfallCard['scryfall_uri'],
+                'set' => $scryfallCard['set'],
+                'collector_number' => $scryfallCard['collector_number'],
+                'is_gamechanger' => $scryfallCard['game_changer'],
+                'oracle_id' => $scryfallCard['oracle_id']
+            ]);
+            $reverseCard = ReverseCard::create([
+                'card_name' =>$scryfallCard['card_faces'][1]['name'],
+                'face_card_id' => $faceCard['card_id'],
+                'mana_cost' => $scryfallCard['card_faces'][1]['mana_cost'],
+                'cmc' => $scryfallCard['cmc'],
+                'type_line' => $scryfallCard['card_faces'][1]['type_line'],
+                'oracle_text' => $scryfallCard['card_faces'][1]['oracle_text'],
+                'colours' => implode(',' ,$scryfallCard['colors']),
+                'colour_identity' => implode(',' ,$scryfallCard['color_identity']),
+                'image_url' => $scryfallCard['image_uris']['normal'],
                 'scryfall_uri' => $scryfallCard['scryfall_uri'],
                 'set' => $scryfallCard['set'],
                 'collector_number' => $scryfallCard['collector_number'],
