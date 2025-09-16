@@ -141,7 +141,7 @@ class StatsController extends Controller
                     $datasets[$userId] = [
                         'label' => $userName,
                         'data' => [],
-                        'tension' => 0.3
+                        'tension' => 0.1
                     ];
                 }
                 
