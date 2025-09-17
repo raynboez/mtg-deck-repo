@@ -35,6 +35,16 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
+            <a class="block w-full" :href="route('bans')" prefetch as="button">
+                <ChartLine class="mr-2 h-4 w-4" />
+                BanList
+            </a>
+            
+        </DropdownMenuItem>
+    </DropdownMenuGroup>
+    <DropdownMenuSeparator />
+    <DropdownMenuGroup>
+        <DropdownMenuItem :as-child="true">
             <a class="block w-full" href="https://github.com/raynboez/mtg-deck-repo" target="_blank" rel="noopener noreferrer" prefetch as="button">
                 <Folder class="mr-2 h-4 w-4" />
                 Github Repo

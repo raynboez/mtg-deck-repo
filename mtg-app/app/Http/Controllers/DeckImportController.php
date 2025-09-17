@@ -180,7 +180,7 @@ class DeckImportController extends Controller
         ];
     }
 
-    protected function findCard(array $cardData)
+    public function findCard(array $cardData)
     {
         $card = Card::where('card_name', $cardData['name'])
             ->when($cardData['set'], function($query) use ($cardData) 

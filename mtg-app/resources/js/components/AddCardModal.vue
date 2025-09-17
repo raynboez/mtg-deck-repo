@@ -2,7 +2,7 @@
   <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Add Card to Deck</h2>
+        <h2>{{ modalTitle }}</h2>
         <button class="close-button" @click="$emit('close')">×</button>
       </div>
       <div class="modal-body">
@@ -67,7 +67,7 @@
         </div>
 
         <div v-else class="initial-state">
-          <p>Search for Magic: The Gathering cards to add to your deck.</p>
+          <p>Search for Magic: The Gathering cards to add to your {{ isBanlistMode ? 'banlist' : 'deck' }}.</p>
           <p class="hint">Try searching by card name, like "Lightning Bolt" or "Counterspell"</p>
         </div>
       </div>
@@ -75,7 +75,9 @@
       <div class="modal-footer">
         <div v-if="selectedCard" class="selected-card-info">
           <span>Selected: <strong>{{ selectedCard.name }}</strong></span>
-          <div class="quantity-control" v-if="!isCommanderCard(selectedCard)">
+          
+          <!-- Quantity Selector (for deck mode) -->
+          <div v-if="!isBanlistMode" class="quantity-control">
             <label>Quantity:</label>
             <div class="quantity-buttons">
               <button @click="decrementQuantity">−</button>
@@ -83,17 +85,29 @@
               <button @click="incrementQuantity">+</button>
             </div>
           </div>
-          <span v-else class="commander-note">(Commander - 1 copy max)</span>
+          
+          <!-- User Selector (for banlist mode) -->
+          <div v-if="isBanlistMode && users.length > 0" class="user-selector">
+            <label>Banned by:</label>
+            <select v-model="selectedUserId" class="user-dropdown">
+              <option v-for="user in users" :key="user.user_id" :value="user.user_id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
+          
         </div>
         
         <div class="footer-buttons">
           <button class="btn-secondary" @click="$emit('close')">Cancel</button>
           <button 
             class="btn-primary" 
-            @click="addCardToDeck" 
-            :disabled="!selectedCard || isAdding"
+            @click="handleAddAction" 
+            :disabled="!selectedCard"
           >
-            <span v-if="!isAdding">Add Card</span>
+            <span v-if="!isAdding">
+              {{ isBanlistMode ? 'Add to Banlist' : 'Add to Deck' }}
+            </span>
             <span v-else>Adding...</span>
           </button>
         </div>
@@ -103,9 +117,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { debounce } from 'lodash-es';
 import card_back from '../../assets/card-back.png';
+import axios from 'axios';
 
 interface ScryfallCard {
   id: string;
@@ -130,14 +145,20 @@ interface ScryfallCard {
   };
 }
 
+interface User {
+  user_id: number;
+  name: string;
+}
+
 const props = defineProps<{
   show: boolean;
   deckId: number;
+  seasonId?: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'add-card', cardData: any, quantity: number): void;
+  (e: 'add-card', cardData: any, quantity: number, userId?: number): void;
 }>();
 
 const searchQuery = ref('');
@@ -148,6 +169,10 @@ const isSearching = ref(false);
 const searchError = ref('');
 const quantity = ref(1);
 const isAdding = ref(false);
+const users = ref<User[]>([]);
+var selectedUserId = 0;
+
+
 
 const debouncedSearch = debounce(async () => {
   if (!searchQuery.value.trim()) {
@@ -161,7 +186,7 @@ const debouncedSearch = debounce(async () => {
   try {
     const encodedQuery = encodeURIComponent(searchQuery.value);
     const response = await fetch(
-      `https://api.scryfall.com/cards/search?q=${encodedQuery}&order=name&unique=cards`
+      `https://api.scryfall.com/cards/search?q=${encodedQuery}&order=name&unique=cards&game=paper`
     );
 
     if (!response.ok) {
@@ -189,7 +214,6 @@ const debouncedSearch = debounce(async () => {
   }
 }, 500);
 
-
 const searchCards = () => {
   debouncedSearch();
 };
@@ -201,7 +225,6 @@ const selectCard = (card: ScryfallCard) => {
 };
 
 const isCommanderCard = (card: ScryfallCard) => {
-  //removed the check for commanders because fuck it
   return false;
 };
 
@@ -222,14 +245,19 @@ const handleImageError = (event: Event) => {
   img.src = card_back;
 };
 
-const addCardToDeck = async () => {
+const handleAddAction = async () => {
   if (!selectedCard.value) return;
+  if (isBanlistMode.value && !selectedUserId) return;
 
   isAdding.value = true;
 
   try {
-    console.log(selectedCard.value);
-    emit('add-card', selectedCard.value, quantity.value);
+    if (isBanlistMode.value) {
+      console.log(selectedUserId);
+      emit('add-card', selectedCard.value, selectedUserId);
+    } else {
+      emit('add-card', selectedCard.value, quantity.value);
+    }
   } catch (error) {
     console.error('Error preparing card data:', error);
     searchError.value = 'Failed to add card. Please try again.';
@@ -237,15 +265,48 @@ const addCardToDeck = async () => {
     isAdding.value = false;
   }
 };
+const isBanlistMode = computed(() => props.deckId === 0);
+const modalTitle = computed(() => 
+  isBanlistMode.value ? 'Add Card to Banlist' : 'Add Card to Deck'
+);
+
+const fetchUsers = async () => {
+  if (!isBanlistMode.value) return;
+  
+  try {
+    const response = await axios.get('/api/users');
+    users.value = response.data;
+    if (users.value.length > 0) {
+      selectedUserId = users.value[0].user_id;
+    }
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+    searchError.value = 'Failed to load users';
+  }
+};
 
 watch(() => props.show, (newVal) => {
-  if (!newVal) {
+  if (newVal) {
     searchQuery.value = '';
     searchResults.value = [];
     selectedCard.value = null;
     selectedCardId.value = null;
     searchError.value = '';
     quantity.value = 1;
+    
+    if (isBanlistMode.value) {
+      console.log('Modal opened in banlist mode, fetching users');
+      fetchUsers();
+    } else {
+      console.log('Modal opened in deck mode');
+    }
+  }
+});
+
+onMounted(() => {
+  if (props.show && isBanlistMode.value) {
+    console.log('Component mounted in banlist mode, fetching users');
+    fetchUsers();
   }
 });
 </script>
@@ -431,12 +492,14 @@ watch(() => props.show, (newVal) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
   padding: 0.5rem;
   background-color: var(--color-background);
   border-radius: 4px;
 }
 
-.quantity-control {
+.quantity-control, .user-selector {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -460,6 +523,13 @@ watch(() => props.show, (newVal) => {
 .quantity-buttons span {
   margin: 0 0.5rem;
   font-weight: bold;
+}
+
+.user-dropdown {
+  padding: 0.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
 }
 
 .commander-note {
