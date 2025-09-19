@@ -24,5 +24,10 @@ Route::get('match_import', function () {
 Route::get('deck/{id}', [DeckController::class, 'show']
 )->middleware(['auth', 'verified'])->name('deck');
 
+
+Route::get('bans', function () {
+    return Inertia::render('Bans');
+})->middleware(['auth', 'verified'])->name('bans');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
