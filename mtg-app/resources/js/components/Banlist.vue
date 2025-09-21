@@ -187,7 +187,7 @@ const handleMouseLeave = () => {
 };
 
 const currentUserId = ref<number | null>(null);
-const adminUserIds = ref<number[]>([1, 2, 3]);
+const adminUserIds = ref<number[]>([1]);
 const showAddBanCardModal = ref(false);
 
 const isAdminUser = computed(() => {
