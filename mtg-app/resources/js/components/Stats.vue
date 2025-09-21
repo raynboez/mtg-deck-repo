@@ -70,13 +70,14 @@ import { useRouter } from 'vue-router';
                     <div class="">Total Matches</div>
                 </div>
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">{{ statistics.average_turns_per_game || 0 }}</div>
-                    <div class="">Avg. Turns/Game</div>
-                </div>
-                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-purple-600 mb-2">{{ mostWinsPlayer }}</div>
                     <div class="">Most Wins</div>
                 </div>
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ mostMotmsPlayer }}</div>
+                    <div class="">Most PotGs</div>
+                </div>
+                
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-red-600 mb-2">{{ highestWinRate }}%</div>
                     <div class="">Best Win Rate</div>
@@ -85,7 +86,9 @@ import { useRouter } from 'vue-router';
 
             <h2 class="text-2xl font-semibold  mb-6">Player Statistics</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <div v-for="player in statistics.player_stats || []" :key="player.user_id" class="card rounded-xl shadow-md p-6">
+                <div v-for="player in statistics.player_stats || []" :key="player.user_id" 
+                    @click="openPlayerModal(player)"
+                    class="card rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-blue-100 border-2 border-white text-black flex items-center justify-center text-xl font-bold">
                             {{ getInitials(player.name) }}
@@ -110,12 +113,97 @@ import { useRouter } from 'vue-router';
                             <div class="text-black">Season Points</div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
-                            <div class="font-semibold text-purple-600">{{ player.favorite_deck }}</div>
-                            <div class="text-black">Favorite Deck</div>
+                            <div class="font-semibold text-purple-600">{{ player.favourite_deck }}</div>
+                            <div class="text-black">Favourite Deck</div>
                         </div>
                     </div>
                 </div>
             </div>
+
+
+            <div v-if="selectedPlayer" class="fixed inset-0 z-50">
+                <div class="modal-backdrop" @click="closePlayerModal"></div>
+                <div class="modal-content">
+                    <button @click="closePlayerModal" class="absolute top-4 right-4 hover:">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    </button>
+
+                    <div class="pb-3 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold">Player Details - {{ selectedPlayer.name }}</h3>
+                    </div>
+
+                    <div class="mt-4 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-md">
+                        <div class="font-semibold text-blue-600 text-2xl">{{ selectedPlayer.wins }}</div>
+                        <div class="text-black text-sm">Wins</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-md">
+                        <div class="font-semibold text-red-600 text-2xl">{{ selectedPlayer.losses }}</div>
+                        <div class="text-black text-sm">Losses</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-md">
+                        <div class="font-semibold text-green-600 text-2xl">{{ selectedPlayer.win_rate }}%</div>
+                        <div class="text-black text-sm">Win Rate</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-md">
+                        <div class="font-semibold text-purple-600 text-2xl">{{ selectedPlayer.points }}</div>
+                        <div class="text-black text-sm">Points</div>
+                        </div>
+                    </div>
+                    <!--
+                    <div>
+                        <h4 class="font-medium mb-2">Life Statistics</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="text-black text-center p-2 bg-gray-50 rounded-md">
+                            <div class="font-semibold">{{ selectedPlayer.avg_starting_life }}</div>
+                            <div>Avg Starting Life</div>
+                        </div>
+                        <div class="text-black text-center p-2 bg-gray-50 rounded-md">
+                            <div class="font-semibold">{{ selectedPlayer.avg_final_life }}</div>
+                            <div>Avg Final Life</div>
+                        </div>
+                        </div>
+                    </div>
+                    -->
+                    <div>
+                        <h4 class="font-medium mb-2">Game Statistics</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
+                            <div class="font-semibold">{{ selectedPlayer.first_bloods }}</div>
+                            <div>First Bloods</div>
+                        </div>
+                        <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
+                            <div class="font-semibold">{{ selectedPlayer.motms }}</div>
+                            <div>Play of the Game</div>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-medium mb-2">Favourite Deck</h4>
+                        <div class="p-3 bg-gray-50 rounded-md">
+                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_deck }}</div>
+                        </div>
+                    </div>
+                    <!--
+                    <div v-if="getPlayerPerformanceData(selectedPlayer.user_id)" class="mt-4">
+                        <h4 class="font-medium mb-2">Performance Over Time</h4>
+                        <canvas :ref="'playerChart-' + selectedPlayer.user_id" width="400" height="200"></canvas>
+                    </div>
+
+                    -->
+                    </div>
+
+                    <div class="flex justify-end pt-4 mt-4 border-t border-gray-200">
+                    <button @click="closePlayerModal" class="text-black px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                        Close
+                    </button>
+                    </div>
+                </div>
+                </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div class="card rounded-xl shadow-md p-6">
@@ -243,6 +331,10 @@ export default {
     data() {
         return {
             selectedMatch:null,
+            selectedPlayer: null,
+            playerCharts: {},
+            isInitializingChart: false,
+            chartInitializationTimeout: null,
             loading: true,
             error: null,
             filters: {
@@ -265,6 +357,13 @@ export default {
             return this.statistics.player_stats.reduce((prev, current) => 
                 (prev.wins > current.wins) ? prev : current).name;
         },
+        mostMotmsPlayer() {
+            if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
+                return 'N/A';
+            }
+            return this.statistics.player_stats.reduce((prev, current) => 
+                (prev.motms > current.motms) ? prev : current).name;
+        },
         highestWinRate() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
                 return '0';
@@ -279,6 +378,140 @@ export default {
         document.addEventListener('keydown', this.handleKeydown);
     },
     methods: {
+        openPlayerModal(player) {
+
+            if (this.chartInitializationTimeout) {
+                clearTimeout(this.chartInitializationTimeout);
+                this.chartInitializationTimeout = null;
+            }
+            
+            if (this.selectedPlayer) {
+                this.closePlayerModal();
+            }
+            
+            this.selectedPlayer = player;
+            this.isInitializingChart = true;
+            
+            this.chartInitializationTimeout = setTimeout(() => {
+                if (this.selectedPlayer && this.selectedPlayer.user_id === player.user_id) {
+                this.initPlayerChart(player);
+                }
+                this.isInitializingChart = false;
+            }, 100);
+        },
+            
+        closePlayerModal() {
+            if (this.chartInitializationTimeout) {
+                clearTimeout(this.chartInitializationTimeout);
+                this.chartInitializationTimeout = null;
+            }
+            
+            if (this.selectedPlayer) {
+                // Only destroy chart if we're not in the middle of initializing
+                if (!this.isInitializingChart && this.playerCharts[this.selectedPlayer.user_id]) {
+                try {
+                    this.playerCharts[this.selectedPlayer.user_id].destroy();
+                } catch (e) {
+                    // Chart was already destroyed or not properly initialized
+                    console.warn('Error destroying chart:', e);
+                }
+                delete this.playerCharts[this.selectedPlayer.user_id];
+                }
+                this.selectedPlayer = null;
+            }
+        },
+            
+        getPlayerPerformanceData(userId) {
+            if (!this.statistics.datasets || !this.statistics.labels) return null;
+            
+            const playerData = this.statistics.datasets[userId];
+            if (!playerData) return null;
+            
+            return {
+                labels: this.statistics.labels,
+                data: playerData.data
+            };
+        },
+            
+        initPlayerChart(player) {
+            if (!this.selectedPlayer || this.selectedPlayer.user_id !== player.user_id) {
+                return;
+            }
+            
+            const chartId = `playerChart-${player.user_id}`;
+            const canvas = this.$refs[chartId];
+            
+            if (!canvas) {
+                return;
+            }
+            
+            if (this.playerCharts[player.user_id]) {
+                try {
+                this.playerCharts[player.user_id].destroy();
+                } catch (e) {
+                }
+            }
+            
+            const performanceData = this.getPlayerPerformanceData(player.user_id);
+            if (!performanceData) {
+                return;
+            }
+            
+            try {
+                this.playerCharts[player.user_id] = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: performanceData.labels,
+                    datasets: [{
+                        label: `${player.name}'s Points`,
+                        data: performanceData.data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                    },
+                    options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                        display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Match Date'
+                        }
+                        },
+                        y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Points'
+                        },
+                        beginAtZero: true
+                        }
+                    }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating chart:', error);
+            }
+        },
+            
+        handleKeydown(event) {
+            if (event.key === 'Escape') {
+                if (this.selectedMatch) {
+                this.selectedMatch = null;
+                } else if (this.selectedPlayer) {
+                this.closePlayerModal();
+                }
+            }
+        },
+
         async fetchStats() {
             this.loading = true;
             this.error = null;

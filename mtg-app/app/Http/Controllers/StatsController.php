@@ -19,7 +19,7 @@ class StatsController extends Controller
 
         $validated = $request->validate([
             'period' => 'sometimes|string|in:all,month,week',
-            'format' => 'sometimes|string|in:all,Gulag Commander - Season 0,Casual Commander,Custom Game',
+            'format' => 'sometimes|string',
             'bracket' => 'sometimes|integer|min:1|max:5',
         ]);
 
@@ -96,7 +96,7 @@ class StatsController extends Controller
             foreach ($match->participants->sortByDesc('order_lost') as $participant) {
                 
                 if($participant->is_winner){
-                    $points = 3;
+                    $points = $match->number_of_players;
                 }
                 else {
                     if($participant->order_lost == $order_lost){
@@ -104,7 +104,9 @@ class StatsController extends Controller
                         $position = $position-$same_order;
                     }
                     
-                    $points = max(0, 2 - $position);
+                    $points = max(0, ($match->number_of_players - 1) - $position);
+                    
+                    
                     $position = $position+1+$same_order;
                     if(!$participant->order_lost == $order_lost){
                         $same_order = 0;
@@ -124,8 +126,22 @@ class StatsController extends Controller
                         'total_starting_life' => 0,
                         'total_final_life' => 0,
                         'points' => 0,
+                        'first_bloods' => 0,
+                        'motms' => 0
                     ];
                 }
+
+                
+                if($participant->first_blood){
+                    $points = $points + 1;
+                    $playerStats[$userId]['first_bloods']++;
+                }
+                if($participant->motm){
+                    $points = $points + 1;
+                    $playerStats[$userId]['motms']++;
+                }
+
+
                 $playerStats[$userId]['points'] += $points;
                 $playerStats[$userId]['total_games']++;
                 $playerStats[$userId]['total_starting_life'] += $participant->starting_life;
@@ -188,9 +204,9 @@ class StatsController extends Controller
 
             if (!empty($player['decks'])) {
                 arsort($player['decks']);
-                $player['favorite_deck'] = array_key_first($player['decks']);
+                $player['favourite_deck'] = array_key_first($player['decks']);
             } else {
-                $player['favorite_deck'] = 'No decks played';
+                $player['favourite_deck'] = 'No decks played';
             }
 
             unset($player['total_starting_life'], $player['total_final_life'], $player['decks']);
@@ -224,7 +240,7 @@ class StatsController extends Controller
     {
         $validated = $request->validate([
             'period' => 'sometimes|string|in:all,month,week',
-            'format' => 'sometimes|string|in:all,Gulag Commander - Season 0,Casual Commander,Custom Game',
+            'format' => 'sometimes|string',
             'bracket' => 'sometimes|integer|min:1|max:5',
         ]);
 
@@ -269,7 +285,7 @@ class StatsController extends Controller
                 'win_rate' => 0,
                 'avg_starting_life' => 0,
                 'avg_final_life' => 0,
-                'favorite_deck' => 'No decks played',
+                'favourite_deck' => 'No decks played',
                 'deck_usage' => [],
             ];
         }
@@ -299,9 +315,9 @@ class StatsController extends Controller
 
         if (!empty($stats['deck_usage'])) {
             arsort($stats['deck_usage']);
-            $stats['favorite_deck'] = array_key_first($stats['deck_usage']);
+            $stats['favourite_deck'] = array_key_first($stats['deck_usage']);
         } else {
-            $stats['favorite_deck'] = 'No decks played';
+            $stats['favourite_deck'] = 'No decks played';
         }
 
         unset($stats['total_starting_life'], $stats['total_final_life']);

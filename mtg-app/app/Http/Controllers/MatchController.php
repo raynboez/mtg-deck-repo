@@ -24,6 +24,8 @@ class MatchController extends Controller
             'players.*.order_lost' => 'nullable|integer',
             'players.*.turn_lost' => 'nullable|integer',
             'players.*.winner' => 'required|boolean',
+            'players.*.first_blood' => 'required|boolean',
+            'players.*.motm' => 'required|boolean',
             'players.*.borrow_user_id' => 'required_if:players.*.deck_id,borrow|exists:users,user_id',
             'players.*.borrow_deck_id' => 'required_if:players.*.deck_id,borrow|exists:decks,deck_id',
             'date_played' => 'required|date',
@@ -57,7 +59,10 @@ class MatchController extends Controller
                         'final_life' => $playerData['final_life'],
                         'turn_order' => $playerData['turn_order'],
                         'order_lost' => $playerData['order_lost'] | 0,
-                        'turn_lost' => $playerData['turn_lost'] | 0
+                        'turn_lost' => $playerData['turn_lost'] | 0,
+                        'first_blood' => $playerData['first_blood'],
+                        'motm' => $playerData['motm'] | 0
+                        
                     ]);
                 } else {
                         MatchParticipant::create([
@@ -70,6 +75,8 @@ class MatchController extends Controller
                         'turn_order' => $playerData['turn_order'],
                         'order_lost' => $playerData['order_lost'] | 0,
                         'turn_lost' => $playerData['turn_lost'] | 0,
+                        'first_blood' => $playerData['first_blood'],
+                        'motm' => $playerData['motm'] | 0
                     ]);
                 }
                 

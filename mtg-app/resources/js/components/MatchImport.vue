@@ -250,6 +250,27 @@ import { X, XCircle } from 'lucide-vue-next';
                                 class="w-full p-2 border border-input rounded-md bg-background"
                             >
                         </div>
+
+                        <div class="form-group flex items-center">
+                            <input 
+                                type="checkbox" 
+                                :id="'firstblood-' + index" 
+                                v-model="player.first_blood"
+                                @change="setFirstBlood(index)"
+                                class="mr-2"
+                            >
+                            <label :for="'firstblood-' + index" class="text-sm font-medium">First Blood</label>
+                        </div>
+                        <div class="form-group flex items-center">
+                            <input 
+                                type="checkbox" 
+                                :id="'motm-' + index" 
+                                v-model="player.motm"
+                                @change="setMotm(index)"
+                                class="mr-2"
+                            >
+                            <label :for="'motm-' + index" class="text-sm font-medium">Play of the Game</label>
+                        </div>
                         
                     </div>
                 </div>
@@ -273,7 +294,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 1,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     },
                     {
                         user_id: '',
@@ -283,7 +306,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 2,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     },
                     {
                         user_id: '',
@@ -293,7 +318,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 3,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     },
                     {
                         user_id: '',
@@ -303,7 +330,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 4,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     }
                 ],
                 matchDetails: {
@@ -381,7 +410,9 @@ import { X, XCircle } from 'lucide-vue-next';
                     turn_order: this.players.length + 1,
                     order_lost: null,
                     turn_lost: null,
-                    winner: false
+                    winner: false,
+                    first_blood: false,
+                    motm: false
                 });
             },
             removePlayer(index) {
@@ -396,6 +427,20 @@ import { X, XCircle } from 'lucide-vue-next';
                         player.winner = false;
                     } else {
                         player.order_lost = null;
+                    }
+                });
+            },
+            setFirstBlood(firstBloodIndex) {
+                this.players.forEach((player, index) => {
+                    if (index !== firstBloodIndex) {
+                        player.first_blood = false;
+                    }
+                });
+            },
+            setMotm(motmIndex) {
+                this.players.forEach((player, index) => {
+                    if (index !== motmIndex) {
+                        player.motm = false;
                     }
                 });
             },
@@ -447,12 +492,16 @@ import { X, XCircle } from 'lucide-vue-next';
             },
             validateForm() {
                 const hasWinner = this.players.some(player => player.winner);
-                
+                const hasFirstBlood = this.players.some(player => player.first_blood);
                 if (!hasWinner) {
                     this.error = 'Please mark one player as the winner.';
                     return false;
                 }
 
+                if (!hasWinner) {
+                    this.error = 'Please mark one player that achieved First Blood.';
+                    return false;
+                }
                 
                 const allNamesFilled = this.players.every(player => player.name !== '');
                 
@@ -484,7 +533,10 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 1,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
+                        
                     },
                     {
                         user_id: '',
@@ -494,7 +546,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 2,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     },
                     {
                         user_id: '',
@@ -504,7 +558,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 3,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     },
                     {
                         user_id: '',
@@ -514,7 +570,9 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 4,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false
+                        winner: false,
+                        first_blood: false,
+                        motm: false
                     }
                 ];
                 
