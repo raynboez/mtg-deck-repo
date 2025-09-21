@@ -25,7 +25,7 @@ class MatchParticipant extends Model
 	protected $fillable = [
         'match_id', 'user_id', 'deck_id', 'is_winner', 
         'starting_life', 'final_life', 'turn_order',
-		'turn_lost', 'order_lost'
+		'turn_lost', 'order_lost', 'first_blood', 'motm'
     ];
 
     public function match()
