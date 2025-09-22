@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Models\Season;
 use App\Models\User;
 use App\Models\Deck;
 use App\Models\Matches;
@@ -40,9 +41,9 @@ class StatsController extends Controller
             $query->where('bracket', $bracket);
         }
 
-        $matches = $query->orderBy('created_at')->get();
+        $matches = $query->orderByDesc('played_at')->get();
 
-        $stats = $this->calculateStatistics($matches);
+        $stats = $this->calculateStatistics($matches, $format);
 
         return response()->json([
             'success' => true,
@@ -68,7 +69,7 @@ class StatsController extends Controller
         }
     }
 
-    private function calculateStatistics($matches): array
+    private function calculateStatistics($matches, $format): array
     {
         $totalMatches = $matches->count();
         
@@ -79,6 +80,12 @@ class StatsController extends Controller
         $colourDistribution = [];
         $labels = [];
         $datasets = [];
+        $season = Season::where('name', $format)->first();
+        if(isset($season)){
+            $labels[] = $season->date_started->format('d-m-y H:i');
+        } else {
+            $labels[] = "00-00-00 00:00";
+        }
         foreach ($matches as $match) {
             $labels[] = $match->played_at->format('d-m-y H:i');
             $totalParticipants += $match->participants->count();
@@ -127,7 +134,14 @@ class StatsController extends Controller
                         'total_final_life' => 0,
                         'points' => 0,
                         'first_bloods' => 0,
-                        'motms' => 0
+                        'motms' => 0,
+                        'colours' => [
+                            'W' => 0,
+                            'U' => 0,
+                            'B' => 0,
+                            'R' => 0,
+                            'G' => 0                      
+                        ]
                     ];
                 }
 
@@ -159,6 +173,7 @@ class StatsController extends Controller
                         'data' => [],
                         'tension' => 0.1
                     ];
+                    $datasets[$userId]['data'][] = 0;
                 }
                 
                 while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
@@ -184,7 +199,12 @@ class StatsController extends Controller
                     }
                     $playerStats[$userId]['decks'][$deckName]++;
                     
-                    
+                    $coloursArray = json_decode($participant->deck->colours, true);
+                    foreach ($coloursArray as $c) {
+                        if (isset($playerStats[$userId]['colours'][$c])) {
+                            $playerStats[$userId]['colours'][$c]++;
+                        }
+                    }                    
                 }
             }
         }

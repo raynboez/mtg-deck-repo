@@ -47,6 +47,7 @@ class Deck extends Model
 		'deck_name',
 		'description',
 		'colour_identity',
+		'colours',
 		'is_public',
 		'power_level',
 		'is_paper',

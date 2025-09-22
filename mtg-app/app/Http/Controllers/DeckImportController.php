@@ -435,7 +435,7 @@ class DeckImportController extends Controller
             $identityArray = array_unique(array_merge($identityArray, $cardIdentity));
         }
         $deck->colour_identity = $this->getIdentity($identityArray);
-
+        $deck->colours = $identityArray;
         $deck->save();
         
         return response()->json($deck);
