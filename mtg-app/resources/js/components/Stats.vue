@@ -290,21 +290,21 @@ import { useRouter } from 'vue-router';
                         </tr>
                     </thead>
                     <tbody class="card divide-y divide-gray-200">
-                        <tr v-for="match in statistics.recent_matches || []" :key="match.id" 
+                        <tr v-for="match in (statistics.recent_matches || []).slice().reverse()" :key="match.id" 
                             @click="openMatchModal(match)"
                             class="cursor-pointer hover:bg-gray-500 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.date }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.format }}</td>
                             <td class="px-6 py-4 text-sm ">
-                            <div class="flex -space-x-2">
-                                <span v-for="player in match.players" :key="player.id || player.user.id" 
-                                    class="h-8 w-8 rounded-full bg-blue-100 border-2 border-white text-black text-xs flex items-center justify-center font-semibold">
-                                {{ getInitials(player.user?.name || player.name) }}
-                                </span>
-                            </div>
+                                <div class="flex -space-x-2">
+                                    <span v-for="player in match.players" :key="player.id || player.user.id" 
+                                        class="h-8 w-8 rounded-full bg-blue-100 border-2 border-white text-black text-xs flex items-center justify-center font-semibold">
+                                        {{ getInitials(player.user?.name || player.name) }}
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">{{ match.winner }}</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">{{ match.winner }}</span>
                             </td>
                         </tr>
                         </tbody>

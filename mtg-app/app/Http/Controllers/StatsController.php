@@ -41,7 +41,7 @@ class StatsController extends Controller
             $query->where('bracket', $bracket);
         }
 
-        $matches = $query->orderByDesc('played_at')->get();
+        $matches = $query->orderBy('played_at')->get();
 
         $stats = $this->calculateStatistics($matches, $format);
 
@@ -171,7 +171,7 @@ class StatsController extends Controller
                     $datasets[$userId] = [
                         'label' => $userName,
                         'data' => [],
-                        'tension' => 0.1
+                        'tension' => 0
                     ];
                     $datasets[$userId]['data'][] = 0;
                 }
