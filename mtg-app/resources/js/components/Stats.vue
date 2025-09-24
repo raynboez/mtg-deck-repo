@@ -563,11 +563,11 @@ export default {
                     'Sultai': 'UBG',
                     'Mardu': 'WBR',
                     'Temur': 'URG',
-                    'Glint': 'WUBR',
-                    'Dune': 'UBRG',
-                    'Ink': 'WBRG',
-                    'Witch': 'WURG',
-                    'Yore': 'WUBG',
+                    'Glint-Eye': 'WUBR',
+                    'Dune-Brood': 'UBRG',
+                    'Ink-Treader': 'WBRG',
+                    'Witch-Maw': 'WURG',
+                    'Yore-Tiller': 'WUBG',
                     'Five-Color': 'WUBRG',
                     'Colorless': 'C'
                 };
