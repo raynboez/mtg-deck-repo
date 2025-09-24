@@ -11,6 +11,7 @@ import axios from 'axios';
 import Separator from './ui/separator/Separator.vue';
 import ImportDeckButton from './ImportDeckButton.vue';
 import RecordMatchButton from './RecordMatchButton.vue';
+import StatsButton from './StatsButton.vue';
 </script>
 <script lang="ts">
 
@@ -55,7 +56,6 @@ function factionToManaSymbols(factionName: string): string[] {
   return factionToManaSymbolsMap[normalizedName];
 }
 
-// Function to display mana symbols (for use with mana font)
 function displayManaSymbols(factionName: string): string {
   try {
     const symbols = factionToManaSymbols(factionName);
@@ -65,7 +65,6 @@ function displayManaSymbols(factionName: string): string {
   }
 }
 
-// Function to get HTML with mana font classes
 function getManaSymbolsHTML(factionName: string): string {
   try {
     const symbols = factionToManaSymbols(factionName);
@@ -215,12 +214,19 @@ const footerNavItems: NavItem[] = [
 
         <SidebarFooter>
             <SidebarMenuItem>
-                    <SidebarMenuButton class="headerButton" size="lg" as-child>
-                        <Link :href="route('match_import')">
-                            <RecordMatchButton />
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                <SidebarMenuButton class="headerButton" size="lg" as-child>
+                    <Link :href="route('match_import')">
+                        <RecordMatchButton />
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton class="statsButton" size="lg" as-child>
+                    <Link :href="route('stats')">
+                        <StatsButton />
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
             <NavUser />
         </SidebarFooter>
     </Sidebar>
@@ -243,11 +249,10 @@ const footerNavItems: NavItem[] = [
 }
 
 
-/* Submit Button */
 .headerButton {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, var(--chart-2), var(--primary));
+  background: var(--chart-2);
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius); 
@@ -258,7 +263,7 @@ const footerNavItems: NavItem[] = [
 }
 
 .headerButton:hover {
-  background: linear-gradient(135deg, var(--chart-3), var(--primary));
+  background: var(--chart-3);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -267,6 +272,37 @@ const footerNavItems: NavItem[] = [
 }
 
 .headerButton:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.statsButton {
+  width: 100%;
+  padding: 12px;
+  background: var(--chart-2);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius); 
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+.statsButton:hover {
+  background: var(--chart-3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.statsButton:active {
+  transform: translateY(0);
+}
+
+.statsButton:disabled {
   background: var(--muted);
   color: var(--muted-foreground);
   cursor: not-allowed;

@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('deck_import', absolute: false));
+        return redirect()->intended(route('stats', absolute: false));
     }
 
     /**S

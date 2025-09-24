@@ -36,6 +36,6 @@ class ConfirmablePasswordController extends Controller
 
         $request->session()->put('auth.password_confirmed_at', time());
 
-        return redirect()->intended(route('deck_import', absolute: false));
+        return redirect()->intended(route('stats', absolute: false));
     }
 }
