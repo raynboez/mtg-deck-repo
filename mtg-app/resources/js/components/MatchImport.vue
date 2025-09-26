@@ -217,7 +217,7 @@ import { X, XCircle } from 'lucide-vue-next';
                             <input 
                                 type="checkbox" 
                                 :id="'winner-' + index" 
-                                v-model="player.winner"
+                                v-model="player.is_winner"
                                 @change="setWinner(index)"
                                 class="mr-2"
                             >
@@ -232,7 +232,7 @@ import { X, XCircle } from 'lucide-vue-next';
                                 v-model.number="player.order_lost"
                                 min="0"
                                 :max="players.length"
-                                :disabled="player.winner"
+                                :disabled="player.is_winner"
                                 :class="{'opacity-50 cursor-not-allowed': player.winner}"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                             >
@@ -245,8 +245,8 @@ import { X, XCircle } from 'lucide-vue-next';
                                 type="number" 
                                 v-model.number="player.turn_lost"
                                 min="0"
-                                :disabled="player.winner"
-                                :class="{'opacity-50 cursor-not-allowed': player.winner}"
+                                :disabled="player.is_winner"
+                                :class="{'opacity-50 cursor-not-allowed': player.is_winner}"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                             >
                         </div>
@@ -294,7 +294,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 1,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     },
@@ -306,7 +306,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 2,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     },
@@ -318,7 +318,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 3,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     },
@@ -330,7 +330,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 4,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     }
@@ -410,7 +410,7 @@ import { X, XCircle } from 'lucide-vue-next';
                     turn_order: this.players.length + 1,
                     order_lost: null,
                     turn_lost: null,
-                    winner: false,
+                    is_winner: false,
                     first_blood: false,
                     motm: false
                 });
@@ -424,7 +424,7 @@ import { X, XCircle } from 'lucide-vue-next';
             setWinner(winnerIndex) {
                 this.players.forEach((player, index) => {
                     if (index !== winnerIndex) {
-                        player.winner = false;
+                        player.is_winner = false;
                     } else {
                         player.order_lost = null;
                     }
@@ -491,7 +491,7 @@ import { X, XCircle } from 'lucide-vue-next';
                 }
             },
             validateForm() {
-                const hasWinner = this.players.some(player => player.winner);
+                const hasWinner = this.players.some(player => player.is_winner);
                 const hasFirstBlood = this.players.some(player => player.first_blood);
                 if (!hasWinner) {
                     this.error = 'Please mark one player as the winner.';
@@ -533,7 +533,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 1,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                         
@@ -546,7 +546,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 2,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     },
@@ -558,7 +558,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 3,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     },
@@ -570,7 +570,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_order: 4,
                         order_lost: null,
                         turn_lost: null,
-                        winner: false,
+                        is_winner: false,
                         first_blood: false,
                         motm: false
                     }
