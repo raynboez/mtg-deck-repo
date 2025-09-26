@@ -1,12 +1,15 @@
 <?php
 namespace App\Services;
 
-use function GuzzleHttp\default_ca_bundle;
-
+use App\Models\MatchParticipant;
 use Illuminate\Support\Facades\Log;
-
 class MMRService
 {
+
+    const K_FACTOR_BASE = 25;
+    const K_FACTOR_VOLATILE = 40;
+
+    const PLACEMENT_MATCHES = 10;
     const BASE_POINTS_6 = [
         1 => 15,
         2 => 10,
@@ -38,7 +41,7 @@ class MMRService
         2 => 0,
     ];
     
-    const POSITION_BONUS = 5;
+    const POSITION_BONUS = 3;
     const POSITION_PENALTY = 3;
 
     public function calculateMatchMMR(array $playersData, $format)
@@ -48,25 +51,33 @@ class MMRService
 
         $playersWithPosition = $this->assignFinishingPositions($players);
         $playersWithMMR = $this->getCurrentMMRForPlayers($playersWithPosition, $format);
+        
         $sortedByMMR = $playersWithMMR->sortByDesc('current_mmr');
         $mmrChanges = [];
-        
-        foreach ($playersWithPosition as $player) {
+        $averageMMR = $sortedByMMR->avg('current_mmr');
+
+
+        foreach ($sortedByMMR as $player) {
             $position = $player['position'];
+            /*
             $basePoints = $this->getPointsForPosition($position, $playerCount);
             
             $expectedPosition = $sortedByMMR->values()->search(function($p) use ($player) {
                 return $p['user_id'] === $player['user_id'];
             }) + 1;
+            $expectedPoints = $this->getPointsForPosition($expectedPosition, $playerCount);
+
+
             
+
             $adjustment = 0;
-            
             if ($position < $expectedPosition) {
                 $adjustment = self::POSITION_BONUS;
             } elseif ($position > $expectedPosition) {
                 $adjustment = -self::POSITION_PENALTY;
             }
-            
+
+
             $totalChange = $basePoints + $adjustment;
             $mmrChanges[$player['user_id']] = [
                 'change' => $totalChange,
@@ -74,6 +85,43 @@ class MMRService
                 'base_points' => $basePoints,
                 'adjustment' => $adjustment
             ];
+            */
+
+            $basePoints = $this->getPointsForPosition($position, $playerCount);
+            if($player['is_winner']){
+                $basePoints++;
+            }
+            if($player['first_blood']){
+                $basePoints++;
+            }
+            if($player['motm']){
+                $basePoints++;
+            }
+
+            $gamesPlayed = $this->getGamesPlayed($player['user_id'], $format);
+            if ($gamesPlayed < self::PLACEMENT_MATCHES) {
+                
+                $expectedPosition = ($playerCount + 1) / 2;
+            } else {
+                $expectedPosition = $sortedByMMR->values()->search(function($p) use ($player) {
+                    return $p['user_id'] === $player['user_id'];
+                }) + 1;
+            }
+            $expectedPoints = $this->getPointsForPosition($expectedPosition, $playerCount);
+            $pointDifference = ($basePoints - $expectedPoints) / 10;
+
+            $kFactor = $this->getDynamicKFactor($gamesPlayed, $player['current_mmr'], $averageMMR);
+            $rawChange = $kFactor * $pointDifference;
+            $finalChange = round($rawChange);
+            $mmrChanges[$player['user_id']] = [
+                'change' => $finalChange,
+                'position' => $position,
+                'base_points' => $basePoints,
+                'expected_points' => $expectedPoints,
+                'point_difference' => $pointDifference,
+                'k_factor' => $kFactor
+            ];
+        
         }
         
         return $mmrChanges;
@@ -132,7 +180,6 @@ class MMRService
             return $player;
         });
     }
-
     private function getPointsForPosition($position, $playerCount)
     {
         switch($playerCount) {
@@ -141,15 +188,53 @@ class MMRService
             case 3:
                 return self::BASE_POINTS_3[$position] ?? 0;
             case 4:
-                return self::BASE_POINTS_3[$position] ?? 0;
+                return self::BASE_POINTS_4[$position] ?? 0;
             case 5:
-                return self::BASE_POINTS_3[$position] ?? 0;
+                return self::BASE_POINTS_5[$position] ?? 0;
             case 6:
-                return self::BASE_POINTS_3[$position] ?? 0;
+                return self::BASE_POINTS_6[$position] ?? 0;
             default:
                 return 0;
         }        
     }
+
+    
+    private function getDynamicKFactor($gamesPlayed, $playerMMR, $averageMMR)
+    {
+        
+        
+        if ($gamesPlayed < 10) return self::K_FACTOR_VOLATILE;
+        if ($gamesPlayed < 20) return self::K_FACTOR_BASE * 1.2;
+        
+        $mmrDifference = $playerMMR - $averageMMR;
+        $differenceFactor = 1.0;
+        
+        if (abs($mmrDifference) > 200) {
+            $differenceFactor = 0.7;
+        } elseif (abs($mmrDifference) > 100) {
+            $differenceFactor = 0.85;
+        }
+        
+        return self::K_FACTOR_BASE * $differenceFactor;
+    }
+
+    private function getGameSizeMultiplier($playerCount)
+    {
+        return [
+            3 => 0.8, 
+            4 => 1.0, 
+            5 => 1.2, 
+            6 => 1.4  
+        ][$playerCount] ?? 1.0;
+    }
+
+    private function getGamesPlayed($userId, $matchType)
+{
+    return MatchParticipant::join('matches', 'match_participants.match_id', '=', 'matches.match_id')
+        ->where('match_participants.user_id', $userId)
+        ->where('matches.match_type', $matchType)
+        ->count();
+}
 
     public function getStartingMMR()
     {

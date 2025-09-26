@@ -61,6 +61,8 @@ class BackfillMMR extends Command
                         'is_winner' => $participant->is_winner,
                         'order_lost' => $participant->order_lost,
                         'turn_lost' => $participant->turn_lost,
+                        'first_blood' => $participant->first_blood,
+                        'motm' => $participant->motm,
                     ];
                 })->toArray();
                 $mmrChanges = $mmrService->calculateMatchMMR($playersData, $match->match_type);
