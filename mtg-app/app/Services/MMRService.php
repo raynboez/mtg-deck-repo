@@ -44,15 +44,11 @@ class MMRService
     public function calculateMatchMMR(array $playersData, $format)
     {
         $players = collect($playersData);
-        Log::info("". $players);
         $playerCount = $players->count();
 
         $playersWithPosition = $this->assignFinishingPositions($players);
-        Log::info("" . $playersWithPosition);
         $playersWithMMR = $this->getCurrentMMRForPlayers($playersWithPosition, $format);
-        Log::info("" . $playersWithMMR);
         $sortedByMMR = $playersWithMMR->sortByDesc('current_mmr');
-        Log::info("" . $sortedByMMR);
         $mmrChanges = [];
         
         foreach ($playersWithPosition as $player) {
