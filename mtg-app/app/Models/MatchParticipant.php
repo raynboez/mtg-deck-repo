@@ -22,10 +22,13 @@ class MatchParticipant extends Model
 {
 	protected $table = 'match_participants';
     public $timestamps = false;
+    protected $primaryKey = 'participant_id';
+    
 	protected $fillable = [
         'match_id', 'user_id', 'deck_id', 'is_winner', 
         'starting_life', 'final_life', 'turn_order',
-		'turn_lost', 'order_lost', 'first_blood', 'motm'
+		'turn_lost', 'order_lost', 'first_blood', 'motm',
+        'mmr_before', 'mmr_after', 'mmr_change'
     ];
 
     public function match()

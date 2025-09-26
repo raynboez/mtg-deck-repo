@@ -120,6 +120,7 @@ class StatsController extends Controller
                     }
                     $order_lost = $participant->order_lost;
                 }
+                
                 $userId = $participant->user_id;
                 $userName = $participant->user->name ?? 'Unknown';
                 if (!isset($playerStats[$userId])) {
