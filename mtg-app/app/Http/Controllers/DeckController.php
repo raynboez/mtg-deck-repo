@@ -7,11 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\DeckExportService;
+use App\Http\Controllers\SeasonController;
 use App\Models\Deck;
 use Inertia\Inertia;
 
 class DeckController extends Controller
 {        
+    protected $seasonController;
+
+    public function __construct(SeasonController $seasonController)
+    {
+        $this->seasonController = $seasonController;
+    }
     public function userDecks(Request $request)
     {
         $user = $request->user()->user_id;
@@ -30,6 +37,11 @@ class DeckController extends Controller
         $user = $request->user()->user_id;
         $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $banned = DB::table('banned_cards')
+            ->join('cards', 'cards.card_id', '=', 'banned_cards.card_id')
+            ->where('banned_cards.season_id', $this->seasonController->getActiveSeasonId())
+            ->pluck('cards.oracle_id')
+            ->toArray();
         $commanders = DB::table('deck_cards')->where([['deck_id', $deckId],['is_commander', true]])->select('card_id')->get();
         $commanderArr = array();
         $potentialCommanderArr = array();
@@ -37,11 +49,19 @@ class DeckController extends Controller
             array_push($commanderArr, $commander->card_id);
         }
         $cardCount = 0;
+        $containsBannedCards = 0;
         $cardArr = array();
         $reverse = array();
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
+            
+            if (in_array($cardData->oracle_id, $banned)) {
+                $cardData->is_banned = 1;
+                $containsBannedCards = 1;
+            } else {
+                $cardData->is_banned = 0;
+            }
             if(str_contains($cardData->type_line,'Legendary')){
                 array_push($potentialCommanderArr, $cardData);
             }
@@ -96,7 +116,8 @@ class DeckController extends Controller
                 'commanders' => $commanderArr,
                 'potentialCommanders' => $potentialCommanderArr,
                 'deckstats' => $deckstats,
-                'cardcount' => $cardCount
+                'cardcount' => $cardCount,
+                'containsBannedCards' => $containsBannedCards
             ]
         );
     }
@@ -125,6 +146,7 @@ class DeckController extends Controller
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
+            
             array_push($cardArr, $cardData);
         }
 

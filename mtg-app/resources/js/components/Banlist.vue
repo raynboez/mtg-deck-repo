@@ -269,7 +269,23 @@ onUnmounted(() => {
         <h1 class="text-2xl font-bold">Banned Cards</h1>
         <p class="text-muted-foreground">Cards banned for this season</p>
       </div>
-      
+      <div class="">
+        <a href="https://docs.google.com/spreadsheets/d/15e8M16C5egWPv-OBWWChVOdWKImbG0Brydj7oVrHW3g/edit?usp=sharing">
+          <button
+            class="
+              bg-green-600 hover:bg-green-700 
+              text-white font-medium 
+              h-9 px-4
+              rounded-md
+              transition-all duration-200
+              shadow-sm hover:shadow-md
+              focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
+            "
+          >
+            Ban Spreadsheet
+          </button>
+        </a>
+      </div>
       <div class="flex items-center gap-3">
         <button 
           v-if="isAdminUser && selectedSeasonId"

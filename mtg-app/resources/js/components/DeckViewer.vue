@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, Component } from 'vue';
 import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
-import { RefreshCw, CircleAlert, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
+import { RefreshCw, Ban, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
 import axios from 'axios';
 import DeckAssignmentModal from './DeckAssignmentModal.vue';
 import AddCardModal from './AddCardModal.vue'; 
@@ -26,6 +26,7 @@ interface Card {
   face_card_id: number;
   reverse_card_id: number;
   quantity: number;
+  is_banned: boolean;
 }
 
 
@@ -43,6 +44,7 @@ const props = defineProps<{
   potentialCommanders: number[];
   deckstats: string | null;
   cardcount: number | null;
+  containsBannedCards: number | null;
 }>();
 
 
@@ -368,6 +370,10 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
         <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
         <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
         <p class="text-muted-foreground mb-6">Cards in Deck: {{ cardcount }}</p>
+        <div v-if="containsBannedCards" class="flex items-center gap-2 text-red-600 font-semibold mb-4">
+          <Ban class="w-5 h-5"/>
+          <span>This deck contains banned cards!</span>
+        </div>
       </div>
       
       <div class="flex items-center gap-3">
@@ -476,6 +482,13 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
             <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-orange-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
               <Swords class="w-4 h-4" />
             </div>
+            <div 
+              v-if="card.is_banned" 
+              class="absolute inset-0 flex items-center justify-center pointer-events-none"
+            >
+              <Ban class="w-35 h-35 text-red-600" />
+            </div>
+
             <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
               <RefreshCw/>
             </div>
@@ -507,6 +520,12 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
           <div v-if="card.is_gamechanger" class="absolute top-1 right-1 bg-orange-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
             <Swords class="w-4 h-4" />
           </div>
+          <div 
+              v-if="card.is_banned" 
+              class="absolute inset-0 flex items-center justify-center pointer-events-none"
+            >
+              <Ban class="w-35 h-35 text-red-600" />
+            </div>
           <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
               <RefreshCw/>
           </div>

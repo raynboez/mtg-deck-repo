@@ -27,6 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 :potentialCommanders=potentialCommanders
                 :deckstats="deckstats"
                 :cardcount="cardcount"
+                :containsBannedCards="containsBannedCards"
                 />
             <div v-else>Loading deck...</div>
         </div>
@@ -52,7 +53,8 @@ export default {
       commanders: [],
       potentialCommanders: [],
       deckstats: null,
-      cardcount: null
+      cardcount: null,
+      containsBannedCards: null,
     }
   },
 
@@ -70,7 +72,8 @@ export default {
         this.commanders = Array.isArray(response.data.commanders) ? response.data.commanders : JSON.parse(response.data.commanders);
         this.potentialCommanders = Array.isArray(response.data.potentialCommanders) ?response.data.potentialCommanders: JSON.parse(response.data.potentialCommanders)
         this.deckstats = response.data.deckstats
-        this.cardcount = response.data.cardcount
+        this.cardcount = response.data.cardcount,
+        this.containsBannedCards = response.data.containsBannedCards
       } catch (error) {
         console.error('Error fetching deck:', error)
       }

@@ -27,4 +27,15 @@ class SeasonController extends Controller
             
         return response()->json($seasons);
     }
+
+    public function getActiveSeasonId()
+    {
+        $currentDate = now()->format('Y-m-d');
+        $season = Season::where('date_ended', '>=', $currentDate)
+            ->where('id', '!=', 0)
+            ->orderBy('date_started', 'asc')
+            ->first();
+
+        return $season ? $season->id : null;
+    }
 }
