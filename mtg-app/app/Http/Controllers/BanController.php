@@ -7,6 +7,7 @@ use App\Models\Season;
 use App\Models\User;
 use App\Models\Card;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -93,9 +94,10 @@ class BanController extends Controller
                 array_push($reverse, $reverseCardData);
             }
             
-            $cardData->banned_by = User::findOrFail($card->banned_by)->first();
+            $cardData->banned_by = User::where('user_id', '=', $card->banned_by)->first();
+            
             $cardData->notes = $card->notes;
-        
+            
             array_push($cardArr, $cardData);
         }
 

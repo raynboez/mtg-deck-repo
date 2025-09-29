@@ -76,7 +76,7 @@
         <div v-if="selectedCard" class="selected-card-info">
           <span>Selected: <strong>{{ selectedCard.name }}</strong></span>
           
-          <!-- Quantity Selector (for deck mode) -->
+          <!-- for deck mode -->
           <div v-if="!isBanlistMode" class="quantity-control">
             <label>Quantity:</label>
             <div class="quantity-buttons">
@@ -86,7 +86,17 @@
             </div>
           </div>
           
-          <!-- User Selector (for banlist mode) -->
+          <!-- for banlist mode -->
+          <div v-if="isBanlistMode && users.length > 0" class="notes-input" style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="ban-notes">Notes:</label>
+            <input
+              id="ban-notes"
+              type="text"
+              v-model="notes"
+              placeholder="Reason or notes (optional)"
+              style="flex: 1; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 4px;"
+            />
+          </div>
           <div v-if="isBanlistMode && users.length > 0" class="user-selector">
             <label>Banned by:</label>
             <select v-model="selectedUserId" class="user-dropdown">
@@ -158,7 +168,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'add-card', cardData: any, quantity: number, userId?: number): void;
+  (e: 'add-card', cardData: any, quantity: number, userId?: number, notes?: string): void;
 }>();
 
 const searchQuery = ref('');
@@ -171,6 +181,7 @@ const quantity = ref(1);
 const isAdding = ref(false);
 const users = ref<User[]>([]);
 var selectedUserId = 0;
+var notes = '';
 
 
 
@@ -254,7 +265,7 @@ const handleAddAction = async () => {
   try {
     if (isBanlistMode.value) {
       console.log(selectedUserId);
-      emit('add-card', selectedCard.value, selectedUserId);
+      emit('add-card', selectedCard.value, 1, selectedUserId, notes);
     } else {
       emit('add-card', selectedCard.value, quantity.value);
     }

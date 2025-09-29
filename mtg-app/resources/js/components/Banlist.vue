@@ -219,7 +219,7 @@ const showToastNotification = (message: string) => {
   }, 3000);
 };
 
-const addCardToBanlist = async (cardData: any, user: number) => {
+const addCardToBanlist = async (cardData: any, quantity: number, user: number, note: string) => {
   try {
     console.log(cardData);
     console.log(user);
@@ -227,7 +227,7 @@ const addCardToBanlist = async (cardData: any, user: number) => {
       season_id: selectedSeasonId.value,
       scryfallData: cardData,
       banned_by: user,
-      notes: ``
+      notes: note
     });
     
     if (response.data.success) {
@@ -343,7 +343,7 @@ onUnmounted(() => {
         <img 
           :src="getCardImage(card)" 
           :alt="card.card_name"
-          class="w-full rounded-xl border border-background hover:border-blue-500 transition-colors cursor-pointer"
+          class="w-full rounded-xl border border-background transition-colors cursor-pointer"
           loading="lazy"
         />
         <div v-if="reverseCardsMap[card.card_id]" class="absolute top-1 left-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center p-1">
@@ -360,8 +360,8 @@ onUnmounted(() => {
     <div 
       v-if="hoveredCard && isMounted"
       ref="popperElement"
-      class="fixed z-50 w-64 pointer-events-none"
-      style="max-width: calc(100vw - 20px)"
+      class="fixed z-50 pointer-events-none"
+      style="width: 23vw; max-width: calc(100vw - 20px)"
     >
       <div class="bg-background rounded-xl shadow-xl border border-gray-200">
         <img 
@@ -372,7 +372,7 @@ onUnmounted(() => {
         <div class="p-3">
           <h3 class="font-bold">{{ hoveredCard.card_name }}</h3>
           <p class="text-sm text-gray-600">{{ hoveredCard.type_line }}</p>
-          <p class="text-sm mt-2" v-html="hoveredCard.oracle_text?.replace(/\n/g, '<br>') || ''"></p>
+          <p class="text-m mt-2" v-html="hoveredCard.oracle_text.replace(/\n/g, '<br>')"></p>
           <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
             <span>{{ hoveredCard.set }} #{{ hoveredCard.collector_number }}</span>
             <span>{{ hoveredCard.mana_cost }}</span>
@@ -380,6 +380,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
     <AddCardModal
       v-if="showAddBanCardModal"
       :show="showAddBanCardModal"
