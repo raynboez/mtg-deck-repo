@@ -351,8 +351,9 @@ export default {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
                 return 'N/A';
             }
-            return this.statistics.player_stats.reduce((prev, current) => 
-                (prev.motms > current.motms) ? prev : current).name;
+            const player = this.statistics.player_stats.reduce((prev, current) => 
+                (prev.motms > current.motms) ? prev : current);
+            return player.motms > 0 ? player.name : 'N/A';
         },
         highestWinRate() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
