@@ -86,6 +86,13 @@ class StatsController extends Controller
         } else {
             $labels[] = "00-00-00 00:00";
         }
+        $seasonStart = $season ? $season->date_started : null;
+
+        $mmrService = app(\App\Services\MMRService::class);
+        $datapointPadding = (isset($season) && $season->id == 1 || !isset($season))
+            ? 0
+            : $mmrService->getStartingMMR();
+
         foreach ($matches as $match) {
             $labels[] = $match->played_at->format('d-m-y H:i');
             $totalParticipants += $match->participants->count();
@@ -142,11 +149,16 @@ class StatsController extends Controller
                             'B' => 0,
                             'R' => 0,
                             'G' => 0                      
-                        ]
+                        ],
+                        'mmr_history' => [],
                     ];
                 }
 
-                
+                if ($seasonStart && $match->played_at >= $seasonStart) {
+                    if (!is_null($participant->mmr_after)) {
+                        $playerStats[$userId]['mmr_history'][] = $participant->mmr_after;
+                    }
+                }
                 if($participant->first_blood){
                     $points = $points + 1;
                     $playerStats[$userId]['first_bloods']++;
@@ -174,20 +186,22 @@ class StatsController extends Controller
                         'data' => [],
                         'tension' => 0
                     ];
-                    $datasets[$userId]['data'][] = 0;
+                    $datasets[$userId]['data'][] = $datapointPadding;
                 }
                 
                 while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
                     if(empty($datasets[$userId]['data'])){
-                        $datasets[$userId]['data'][] = 0;
+                        $datasets[$userId]['data'][] = $datapointPadding;
                     } else {
                         $lastVal = end($datasets[$userId]['data']);
                         $datasets[$userId]['data'][] = $lastVal;
                     }
                 }
-                
-                $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
-
+                if(isset($season) && $season->id == 1 || !isset($season)){
+                    $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
+                } else {
+                    $datasets[$userId]['data'][] = $participant->mmr_after;
+                }
                 if ($participant->deck_id) {
                     $deckName = $participant->deck->deck_name ?? 'Unknown Deck';
                     if (!isset($playerStats[$userId]['decks'][$deckName])) {
@@ -230,7 +244,17 @@ class StatsController extends Controller
                 $player['favourite_deck'] = 'No decks played';
             }
 
-            unset($player['total_starting_life'], $player['total_final_life'], $player['decks']);
+            if (!empty($player['mmr_history'])) {
+                $player['current_season_mmr'] = end($player['mmr_history']);
+                $player['peak_season_mmr'] = max($player['mmr_history']);
+                $player['lowest_season_mmr'] = min($player['mmr_history']);
+            } else {
+                $player['current_season_mmr'] = null;
+                $player['peak_season_mmr'] = null;
+                $player['lowest_season_mmr'] = null;
+            }
+
+            unset($player['total_starting_life'], $player['total_final_life'], $player['decks'], $player['mmr_history']);
         }
 
         return [
@@ -242,7 +266,7 @@ class StatsController extends Controller
             'player_stats' => array_values($playerStats),
             'colour_distribution' => $colourDistribution,
             'bracket_distribution' => $bracketStats,
-            'recent_matches' => $matches->take(10)->map(function ($match) {
+            'recent_matches' => $matches->map(function ($match) {
                 return [
                     'id' => $match->match_id,
                     'date' => $match->played_at->format('Y-m-d'),

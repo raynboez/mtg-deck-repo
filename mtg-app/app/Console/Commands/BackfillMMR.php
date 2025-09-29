@@ -8,6 +8,7 @@ use App\Services\MMRService;
 use App\Models\Matches;
 use App\Models\MatchParticipant;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BackfillMMR extends Command
 {
@@ -73,8 +74,11 @@ class BackfillMMR extends Command
                         $userId = $participant->user_id;
                         $mmrData = $mmrChanges[$userId] ?? ['change' => 0, 'position' => 0];
                         
-                        $mmrBefore = $this->getPlayerCurrentMMR($userId, $match->match_type);
-
+                        if (isset($playerMMR[$userId][$match->match_type])) {
+                            $mmrBefore = $playerMMR[$userId][$match->match_type];
+                        } else {
+                            $mmrBefore = $this->getPlayerCurrentMMR($userId, $match->match_type);
+                        }
                         $participant->update([
                             'mmr_before' => $mmrBefore,
                             'mmr_change' => $mmrData['change'],

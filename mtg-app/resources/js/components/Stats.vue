@@ -1,7 +1,6 @@
 <script setup>
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-
 </script>
 
 <template>
@@ -43,6 +42,7 @@ import { useRouter } from 'vue-router';
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option class="text-black" value="all">All Formats</option>
                             <option class="text-black" value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
+                            <option class="text-black" value="Gulag Commander - Season 1">Gulag Commander - Season 1</option>
                             <option class="text-black" value="Casual Commander">Casual Commander</option>
                             <option class="text-black" value="Custom Game">Custom Game</option>
                         </select>
@@ -108,9 +108,13 @@ import { useRouter } from 'vue-router';
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="text-center p-2 bg-blue-50 rounded-md">
-                            <div class="font-semibold text-blue-600">{{ player.points }}</div>
-                            <div class="text-black">Season Points</div>
+                        <div class="text-center p-2 bg-blue-50 rounded-md text-base">
+                            <div class="font-semibold text-blue-600">
+                                {{ isSeasonZero ? player.points : player.current_season_mmr }}
+                            </div>
+                            <div class="text-black">
+                                {{ isSeasonZero ? 'Season Points' : 'Gulag Rating' }}
+                            </div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favourite_deck }}</div>
@@ -149,9 +153,27 @@ import { useRouter } from 'vue-router';
                                 <div class="text-black text-sm">Win Rate</div>
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-md">
-                                <div class="font-semibold text-purple-600 text-2xl">{{ selectedPlayer.points }}</div>
-                                <div class="text-black text-sm">Points</div>
+                                <div class="font-semibold text-purple-600 text-2xl">
+                                    {{ isSeasonZero ? selectedPlayer.points : selectedPlayer.current_season_mmr }}
+                                </div>
+                                <div class="text-black text-sm">
+                                    {{ isSeasonZero ? 'Points' : 'Gulag Rating' }}
+                                </div>
                             </div>
+                            <template v-if="!isSeasonZero">
+                                <div class="text-center p-4 bg-yellow-50 rounded-md">
+                                    <div class="font-semibold text-yellow-600 text-2xl">
+                                        {{ selectedPlayer.peak_season_mmr }}
+                                    </div>
+                                    <div class="text-black text-sm">Peak Gulag Rating</div>
+                                </div>
+                                <div class="text-center p-4 bg-gray-50 rounded-md">
+                                    <div class="font-semibold text-gray-600 text-2xl">
+                                        {{ selectedPlayer.lowest_season_mmr }}
+                                    </div>
+                                    <div class="text-black text-sm">Lowest Gulag Rating</div>
+                                </div>
+                            </template>
                         </div>
                     <div>
                         <h4 class="font-medium mb-2">Game Statistics</h4>
@@ -174,15 +196,13 @@ import { useRouter } from 'vue-router';
                         </div>
                     </div>
 
-
                     <div v-if="selectedPlayer.colours" class="mt-4">
                         <h4 class="font-medium mb-2">Colour Usage</h4>
-                        <div class="relative h-64 w-full">
-        <canvas :ref="'playerChart-' + selectedPlayer.user_id" 
-                class="w-full h-full"></canvas>
-    </div>
+                        <div class="relative h-48 w-full">
+                            <canvas :ref="'playerChart-' + selectedPlayer.user_id" 
+                                    class="w-full h-full"></canvas>
+                        </div>
                     </div>
-
                     </div>
 
                     <div class="flex justify-end pt-4 mt-4 border-t border-gray-200">
@@ -197,7 +217,7 @@ import { useRouter } from 'vue-router';
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div class="card rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold mb-4">Points</h3>
+                    <h3 class="text-xl font-semibold mb-4">{{ isSeasonZero ? 'Points' : 'Gulag Rating' }}</h3>
                     <canvas ref="winChart" width="400" height="250"></canvas>
                 </div>
                 <div class="card rounded-xl shadow-md p-6">
@@ -362,7 +382,11 @@ export default {
             const player = this.statistics.player_stats.reduce((prev, current) => 
                 (prev.win_rate > current.win_rate) ? prev : current);
             return player.win_rate;
-        }
+        },
+        isSeasonZero() {
+            //return false;
+            return this.filters.format === 'Gulag Commander - Season 0';
+        },
     },
     mounted() {
         this.fetchStats();
@@ -376,7 +400,6 @@ export default {
         const canvas = this.$refs[canvasRef];
         if (!canvas) return;
 
-        // Destroy previous chart if it exists
         if (this.playerColorChart) {
             this.playerColorChart.destroy();
             this.playerColorChart = null;
@@ -453,32 +476,38 @@ export default {
     },
         openPlayerModal(player) {
             this.closePlayerModal();
-            
             this.selectedPlayer = player;
-            
+            document.body.classList.add('overflow-hidden');
             this.$nextTick(() => {
                 this.renderPlayerColorChart();
             });
         },
-
         closePlayerModal() {
             if (this.playerColorChart) {
                 this.playerColorChart.destroy();
                 this.playerColorChart = null;
             }
             this.selectedPlayer = null;
+            document.body.classList.remove('overflow-hidden');
         },
-            
+        openMatchModal(match) {
+            this.selectedMatch = match;
+            document.body.classList.add('overflow-hidden');
+        },
         handleKeydown(event) {
             if (event.key === 'Escape') {
                 if (this.selectedMatch) {
-                this.selectedMatch = null;
+                    this.selectedMatch = null;
+                    document.body.classList.remove('overflow-hidden');
                 } else if (this.selectedPlayer) {
-                this.closePlayerModal();
+                    this.closePlayerModal();
                 }
             }
         },
-
+        closeMatchModal() {
+            this.selectedMatch = null;
+            document.body.classList.remove('overflow-hidden');
+        },
         async fetchStats() {
             this.loading = true;
             this.error = null;
@@ -749,6 +778,8 @@ export default {
   max-width: 28rem;
   width: 90%;
   z-index: 50;
+  max-height: 90vh;     
+  overflow-y: auto;    
 }
 
 .modal-content.transparent {
