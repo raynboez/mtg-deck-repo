@@ -426,7 +426,10 @@ class DeckImportController extends Controller
             ->update(['is_commander' => false]);
         $identityArray = [];
         foreach ($validated['commanders'] as $commanderId) {
-            DB::table('deck_cards')->where('card_id', $commanderId)->update(
+            DB::table('deck_cards')
+            ->where('card_id', $commanderId)
+            ->where('deck_id', $id)
+            ->update(
             [
                 'is_commander' => true
             ]);
