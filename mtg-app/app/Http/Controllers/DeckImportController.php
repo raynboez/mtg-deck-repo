@@ -75,6 +75,11 @@ class DeckImportController extends Controller
                 }
                 if(str_contains($card->type_line,'Legendary')){
                     array_push($potentialCommanders, $card);
+                }
+
+                if($card['section'] !== 'main'){
+                    continue;
+                    //skip sideboard cards for now
                 }                
                 DeckCard::create([
                     'deck_id' => $deck->deck_id,
@@ -231,16 +236,14 @@ class DeckImportController extends Controller
 
     protected function determineSection(array $categories): string
     {
+        
         // Archidekt categories: 1=Commander, 2=Companion, 3=Main, 4=Sideboard, 5=Maybeboard, etc.
         foreach ($categories as $category) {
-            $categoryId = $category['id'] ?? null;
-            
-            if ($categoryId === 4) {
-                return 'sideboard';
-            }
-            
-            if (in_array($categoryId, [1, 2, 3])) {
-                return 'main';
+            switch($category) {
+                case 'Sideboard':
+                    return 'Sideboard';
+                case 'Maybeboard':
+                    return 'Maybeboard';
             }
         }
         

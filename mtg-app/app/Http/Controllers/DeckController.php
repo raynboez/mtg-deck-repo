@@ -36,7 +36,7 @@ class DeckController extends Controller
     {
         $user = $request->user()->user_id;
         $deckInfo = DB::table('decks')->where('deck_id', $deckId)->first();
-        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->where('is_main_deck', 1)->get();
         $banned = DB::table('banned_cards')
             ->join('cards', 'cards.card_id', '=', 'banned_cards.card_id')
             ->where('banned_cards.season_id', $this->seasonController->getActiveSeasonId())
