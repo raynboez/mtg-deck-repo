@@ -118,6 +118,7 @@ class DeckController extends Controller
                 'deckstats' => $deckstats,
                 'cardcount' => $cardCount,
                 'containsBannedCards' => $containsBannedCards,
+                'url' => $deckInfo->url,
                 'from_url' => $deckInfo->url ? 1 : 0
             ]
         );

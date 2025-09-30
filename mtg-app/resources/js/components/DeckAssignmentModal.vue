@@ -26,6 +26,16 @@
             rows="3"
           ></textarea>
         </div>
+        <!-- Url if applicable -->
+        <div class="form-group">
+          <label for="deckDescription">Deck Url</label>
+          <input 
+            id="deckUrl" 
+            v-model="deckDetails.url" 
+            class="form-control"
+            type="text" 
+          ></input>
+        </div>
         
         <div class="form-group">
           <label>Commander(s)</label>
@@ -92,7 +102,8 @@ export default {
   props: {
     show: Boolean,
     potentialCommanders: Array,
-    initialDeckData: Object
+    initialDeckData: Object,
+    url: String || null,
   },
   
   data() {
@@ -101,7 +112,8 @@ export default {
         name: '',
         description: '',
         commanders: [],
-        power_level: ''
+        power_level: '',
+        url: ''
       }
     };
   },
@@ -121,6 +133,7 @@ export default {
         this.deckDetails = {
           name: this.initialDeckData.deck_name || '',
           description: this.initialDeckData.description || '',
+          url: this.url || '',
           commanders: [...(this.initialDeckData.commanders || [])],
           power_level: this.initialDeckData.power_level?.toString() || ''
         };

@@ -45,6 +45,7 @@ const props = defineProps<{
   deckstats: string | null;
   cardcount: number | null;
   containsBannedCards: number | null;
+  url:string | null;
   from_url: number | null;
 }>();
 
@@ -132,7 +133,8 @@ const saveDeckDetails = async (details: any) => {
                 name: details.name,
                 description: details.description,
                 commanders: details.commanders,
-                power_level: details.power_level
+                power_level: details.power_level,
+                url: details.url
                 });
                 
                 window.location.href = `/deck/${props.deck.deck_id}`;
@@ -612,6 +614,7 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
             :potential-commanders="potentialCommanders"
             :potential-companions="[]"
             :initial-deck-data="deck"
+            :url="url"
             @close="showAssignmentModal = false"
             @save="saveDeckDetails"
         />

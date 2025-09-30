@@ -552,6 +552,7 @@ class DeckImportController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'url' => 'nullable|string',
             'commanders' => 'array',
             'power_level' => 'required|integer|between:1,5'
         ]);
@@ -561,7 +562,8 @@ class DeckImportController extends Controller
             [
                 'deck_name' => $validated['name'],
                 'description' => $validated['description'],
-                'power_level' => $validated['power_level']
+                'power_level' => $validated['power_level'],
+                'url' => $validated['url']
             ]
             );
         DB::table('deck_cards')

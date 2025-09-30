@@ -56,6 +56,7 @@
             :show="showAssignmentModal"
             :potential-commanders="potentialCommanders"
             :potential-companions="potentialCompanions"
+            :url="url"
             @close="showAssignmentModal = false"
             @save="saveDeckDetails"
         />
@@ -95,7 +96,8 @@ export default {
                 name: details.name,
                 description: details.description,
                 commanders: details.commanders,
-                power_level: details.power_level
+                power_level: details.power_level,
+                url: details.url
                 });
                 
                 window.location.href = `/deck/${this.importedDeckId}`;
