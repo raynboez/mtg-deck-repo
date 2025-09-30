@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ReverseCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use \Illuminate\Support\Str;
 use App\Models\Deck;
@@ -27,7 +28,7 @@ class DeckImportController extends Controller
     {
         set_time_limit(0);
         $request->validate([
-            'file'=> 'nullable|file|mimes:csv,txt',
+            'url'=> 'nullable|string',
             'text'=> 'nullable|string',
             'deck_name'=>'required|string',
             'deck_description'=>'nullable|string'
@@ -36,17 +37,22 @@ class DeckImportController extends Controller
         $user = auth()->user();
         $deckName = $request->input('deck_name');
         $deckDescription = $request->input('deck_description');
+        if($request->filled('url')){
+            $deck = Deck::create([
+                'deck_name' => $deckName,
+                'description' => $deckDescription,
+                'user_id' => $user->user_id,
+                'url' => $request->input('url')
+            ]);
+        } else {
+            $deck = Deck::create([
+                'deck_name' => $deckName,
+                'description' => $deckDescription,
+                'user_id' => $user->user_id
+            ]);
+        }        
 
-        $deck = Deck::create([
-            'deck_name' => $deckName,
-            'description' => $deckDescription,
-            'user_id' => $user->user_id
-        ]);
-
-        
-
-        $lines = $this->getDeckListLines($request);
-        $parsedCards = $this->parseDecklist($lines);
+        $parsedCards = $this->getDeckListLines($request);
         $importedCards = 0;
         $potentialCommanders = [];
         $failedCards = [];
@@ -100,7 +106,6 @@ class DeckImportController extends Controller
         return response()->json([
             'message' => 'Deck import complete',
             'stats' => [
-                'total_lines' => count($lines),
                 'imported_cards' => $importedCards,
                 'failed_cards' => count($failedCards)
             ],
@@ -112,49 +117,168 @@ class DeckImportController extends Controller
 
     protected function getDeckListLines(Request $request): array
     {
+        $lines = '';
         if($request->hasFile('file'))
         {
-            return file($request->file('file')->path(), FILE_IGNORE_NEW_LINES);
+            $lines = file($request->file('file')->path(), FILE_IGNORE_NEW_LINES);
+        }
+        if($request->filled('url'))
+        {
+            return $this->importDeckFromUrl($request->input('url'));
         }
         if($request->filled('text'))
         {
-            return explode("\n", $request->input('text'));
+            $lines = explode("\n", $request->input('text'));
         }
+        $this->parseDecklist($lines);
         throw new \InvalidArgumentException('No decklist provided');
     }
 
-    protected function parseDecklist(array $lines): array
-{
-    $cards = [];
-    $currentSection = 'main';
-    
-    foreach ($lines as $lineNumber => $line) {
-        $line = trim($line);
-        
-        if (empty($line)) {
-            continue;
+    protected function importDeckFromUrl(string $url): array
+    {
+        $parsedUrl = parse_url($url);
+        if(!$parsedUrl || !isset($parsedUrl['host']))
+        {
+            throw new \InvalidArgumentException('Invalid URL provided');
         }
-        
-        if (preg_match('/^SIDEBOARD|SB:/i', $line)) {
-            $currentSection = 'sideboard';
-            continue;
+
+        $host = Str::lower($parsedUrl['host']);
+        if(Str::contains($host, 'archidekt.com'))
+        {
+            return $this->parseDeckFromArchidekt($url);
         }
-        
-        if (str_starts_with($line, '//')) {
-            continue;
-        }
-        
-        $cardData = $this->parseCardLine($line);
-        if (!$cardData) {
-            continue;
-        }
-        
-        $cardData['section'] = $currentSection;
-        $cards[] = $cardData;
+
+        throw new \InvalidArgumentException('Unsupported URL host: ' . $host);
     }
-    
-    return $cards;
-}
+
+    protected function parseDeckFromArchidekt(string $deckUrl): array
+    {
+        try {
+            $deckId = $this->extractDeckId($deckUrl);
+            
+            if (!$deckId) {
+                throw new \Exception('Invalid Archidekt deck URL');
+            }
+            
+            $apiUrl = "https://archidekt.com/api/decks/{$deckId}/";
+            
+            $response = Http::timeout(30)->get($apiUrl);
+            
+            if (!$response->successful()) {
+                throw new \Exception('Failed to fetch deck data from Archidekt API');
+            }
+            
+            $deckData = $response->json();
+            
+            return $this->parseDeckJson($deckData);
+            
+        } catch (\Exception $e) {
+            Log::error('Error parsing Archidekt deck: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    protected function extractDeckId(string $url): ?string
+    {
+        if (preg_match('/archidekt\.com\/decks\/(\d+)/', $url, $matches)) {
+            return $matches[1];
+        }
+        
+        return null;
+    }
+
+    protected function parseDeckJson(array $deckData): array
+    {
+        $cards = [];
+        
+        if (!isset($deckData['cards'])) {
+            return $cards;
+        }
+        
+        foreach ($deckData['cards'] as $cardItem) {
+            $cardData = $this->parseCardJson($cardItem);
+            if ($cardData) {
+                $cards[] = $cardData;
+            }
+        }
+        
+        return $cards;
+    }
+
+    protected function parseCardJson(array $cardItem): ?array
+    {
+        if (!isset($cardItem['card'], $cardItem['categories'])) {
+            return null;
+        }
+        
+        $card = $cardItem['card'];
+        $categories = $cardItem['categories'];
+        $quantity = $cardItem['quantity'] ?? 1;
+        
+        $section = $this->determineSection($categories);
+        $oracleCard = $card['oracleCard'] ?? $card;
+        $printing = $card['printing'] ?? [];
+        
+        return [
+            'quantity' => (int)$quantity,
+            'name' => trim($oracleCard['name'] ?? ''),
+            'set' => $printing['setcode'] ?? ($printing['set'] ?? ''),
+            'collector_number' => $printing['collectorNumber'] ?? '',
+            'is_foil' => $cardItem['foil'] ?? false,
+            'section' => $section
+        ];
+    }
+
+    protected function determineSection(array $categories): string
+    {
+        // Archidekt categories: 1=Commander, 2=Companion, 3=Main, 4=Sideboard, 5=Maybeboard, etc.
+        foreach ($categories as $category) {
+            $categoryId = $category['id'] ?? null;
+            
+            if ($categoryId === 4) {
+                return 'sideboard';
+            }
+            
+            if (in_array($categoryId, [1, 2, 3])) {
+                return 'main';
+            }
+        }
+        
+        return 'main';
+    }
+
+    protected function parseDecklist(array $lines): array
+    {
+        $cards = [];
+        $currentSection = 'main';
+        
+        foreach ($lines as $lineNumber => $line) {
+            $line = trim($line);
+            
+            if (empty($line)) {
+                continue;
+            }
+            
+            if (preg_match('/^SIDEBOARD|SB:/i', $line)) {
+                $currentSection = 'sideboard';
+                continue;
+            }
+            
+            if (str_starts_with($line, '//')) {
+                continue;
+            }
+            
+            $cardData = $this->parseCardLine($line);
+            if (!$cardData) {
+                continue;
+            }
+            
+            $cardData['section'] = $currentSection;
+            $cards[] = $cardData;
+        }
+        
+        return $cards;
+    }
 
 
     protected function parseCardLine($line)
@@ -572,4 +696,72 @@ class DeckImportController extends Controller
         'R' => 'Red',
         'G' => 'Green'
     ];
+
+    public function updateFromUrl(int $deckId)
+    {
+        $deck = Deck::findOrFail($deckId);
+        if(!$deck->url || !Str::contains($deck->url, 'archidekt.com'))
+        {
+            throw new \InvalidArgumentException('Deck does not have a valid Archidekt URL');
+        }
+
+        $parsedCards = $this->importDeckFromUrl($deck->url);
+        if(empty($parsedCards))
+        {
+            throw new \RuntimeException('Failed to re-import deck from Archidekt');
+        }
+
+        DeckCard::where('deck_id', $deck->deck_id)->delete();
+
+        $importedCards = 0;
+        $failedCards = [];
+
+        foreach($parsedCards as $cardData) 
+        {
+            try
+            {
+                $card = $this->findCard($cardData);
+                if(!$card)
+                {
+                    $failedCards[] = 
+                    [
+                        'name' => $cardData['name'],
+                        'section' => $cardData['section'],
+                        'reason' => 'Scryfall Error - Card not found: ' . $cardData['name']
+                    ];
+                    continue;                    
+                }                
+                DeckCard::create([
+                    'deck_id' => $deck->deck_id,
+                    'card_id' => $card->card_id,
+                    'is_main_deck' => $cardData['section'] === 'main',
+                    'quantity' => $cardData['quantity']
+                ]);
+
+                $importedCards++;
+
+                usleep(100000);
+            }
+            catch (\Exception $e)
+            {
+                $failedCards[] =
+                [
+                    'name' => $cardData['name'],
+                    'section' => $cardData['section'],
+                    'reason' => 'processing error: ' . $e->getMessage()
+                ];
+                continue;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Deck re-import complete',
+            'stats' => [
+                'imported_cards' => $importedCards,
+                'failed_cards' => count($failedCards)
+            ],
+            'failures' => $failedCards,
+            'deck_id' => $deck->deck_id
+        ]);
+    }
 }

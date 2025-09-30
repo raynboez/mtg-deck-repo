@@ -45,6 +45,7 @@ const props = defineProps<{
   deckstats: string | null;
   cardcount: number | null;
   containsBannedCards: number | null;
+  from_url: number | null;
 }>();
 
 
@@ -104,6 +105,25 @@ const closeAddCardModal = () => {
 
 const closeRemoveCardModal = () => {
   showRemoveCardModal.value = false;
+};
+
+const isUpdating = ref(false);
+
+const updateFromUrl = async () => {
+  if (isUpdating.value) return;
+  
+  try {
+    isUpdating.value = true;
+    const response = await axios.get(`/api/decks/${props.deck.deck_id}/updateFromUrl`);
+    if (response.status === 200) {
+      window.location.reload(); 
+    }
+  } catch (error) {
+    console.error('Failed to update deck from URL:', error);
+    showToastNotification('Failed to pull changes from URL');
+  } finally {
+    isUpdating.value = false;
+  }
 };
 
 const saveDeckDetails = async (details: any) => {
@@ -427,7 +447,7 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
           EDIT DECK DETAILS
         </button>
 
-        <button 
+        <button v-if="from_url === 0"
         class="
           bg-green-600 hover:bg-green-700 
           text-white font-medium 
@@ -441,7 +461,7 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
       >
         ADD CARD
       </button>
-        <button 
+        <button v-if="from_url === 0"
         class="
           bg-red-600 hover:bg-red-700 
           text-white font-medium 
@@ -455,6 +475,29 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
       >
         REMOVE CARD
       </button>
+      <button 
+        v-if="from_url === 1"
+        class="
+          bg-red-600 hover:bg-red-700 
+          text-white font-medium 
+          h-9 px-4
+          rounded-md
+          transition-all duration-200
+          shadow-sm hover:shadow-md
+          focus:ring-2 focus:ring-red-500 focus:ring-opacity-50
+          flex items-center gap-2
+          disabled:opacity-70 disabled:cursor-not-allowed
+        "
+        @click="updateFromUrl"
+        :disabled="isUpdating"
+      >
+        <Loader2 
+          v-if="isUpdating" 
+          class="w-4 h-4 animate-spin" 
+        />
+        {{ isUpdating ? 'PULLING CHANGES...' : 'PULL CHANGES' }}
+      </button>
+
       </div>
     </div>
 
@@ -594,6 +637,24 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
 </template>
 
 <style scoped>
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+button:disabled:hover {
+  background-color: rgb(220 38 38);
+  transform: none;
+  box-shadow: none;
+}
 .card-item {
   transition: transform 0.2s;
 }

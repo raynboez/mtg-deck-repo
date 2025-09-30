@@ -21,6 +21,7 @@ Route::group(['middleware' => ['web']], function()
     Route::put('/decks/{deck}', [DeckImportController::class, 'update']);
     Route::put('/decks/{deck}/add', [DeckImportController::class, 'addCard']);
     Route::post('/decks/{deck}/remove', [DeckImportController::class, 'removeCard']);
+    Route::get('/decks/{deck}/updateFromUrl', [DeckImportController::class, 'updateFromUrl']);
 
     Route::get('/decks/user', [DeckController::class, 'userDecks']);    
     Route::get('/decks/user/{userId}', [DeckController::class, 'userDecksById']);

@@ -117,7 +117,8 @@ class DeckController extends Controller
                 'potentialCommanders' => $potentialCommanderArr,
                 'deckstats' => $deckstats,
                 'cardcount' => $cardCount,
-                'containsBannedCards' => $containsBannedCards
+                'containsBannedCards' => $containsBannedCards,
+                'from_url' => $deckInfo->url ? 1 : 0
             ]
         );
     }
