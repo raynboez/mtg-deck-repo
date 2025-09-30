@@ -51,7 +51,8 @@ class Deck extends Model
 		'is_public',
 		'power_level',
 		'is_paper',
-		'export_text'
+		'export_text',
+		'url'
 	];
 
 	public function user()

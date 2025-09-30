@@ -5,24 +5,24 @@
         <form @submit.prevent="submitImport">
             <div class="import-options">
                 <div class="option-tabs">
-                    <button type="button" :class="{ active: activeTab === 'file' }" @click="activeTab = 'file'">
-                        Upload File
+                    <button type="button" :class="{ active: activeTab === 'url' }" @click="activeTab = 'url'">
+                        Upload from URL
                     </button>
                     <button type="button" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
                         Paste Decklist
                     </button>
                 </div>
 
-                <div v-if="activeTab === 'file'" class="form-group">
-                    <label for="csv-file">Deck File (CSV/TXT)</label>
-                    <input
-                        id="csv-file"
-                        type="file"
-                        accept=".csv,.txt"
-                        @change="handleFileUpload"
-                        :required="activeTab === 'file'"
-                    >
-                    <small>Accepted formats: Moxfield => CSV, TXT (one card per line)</small>
+                <div v-if="activeTab === 'url'" class="form-group">
+                    <label for="deck_url">Deck URL</label>
+                    <textarea
+                      id="deck_url"
+                      v-model="url"
+                      placeholder="Enter deck URL (e.g. Archidekt)"
+                      rows="1"
+                      :required="activeTab === 'url'"
+                    ></textarea>
+                    <small>Accepted sites: Archidekt</small>
                 </div>
 
                 <div v-if="activeTab === 'text'" class="form-group">
@@ -75,10 +75,10 @@ export default {
             form: {
                 deck_name: 'placeholder',
                 deck_description: 'placeholder',
-                file: null
             },
+            url: '',
             deckText: '',
-            activeTab: 'file',
+            activeTab: 'url',
             loading: false,
             error: null,
             success: false,
@@ -88,11 +88,7 @@ export default {
             importedDeckId: null
         }
     },
-    methods: {
-        handleFileUpload(event) {
-            this.form.file = event.target.files[0];
-        },
-        
+    methods: {        
         async saveDeckDetails(details) {
             try {
                 const response = await axios.put(`/api/decks/${this.importedDeckId}`, {
@@ -124,7 +120,7 @@ export default {
                 }
                 else
                 {
-                    formData.append('file', this.form.file);
+                    formData.append('url', this.url);
                 }
                 console.log(formData);
 
@@ -143,13 +139,9 @@ export default {
                 this.form = {
                     deck_name: '',
                     deck_description: '',
-                    file: null,
+                    url: '',
                     text: ''
                 };
-                if(this.activeTab === 'file')
-                {
-                    document.getElementById('csv-file').value = '';
-                }
 
             } catch (error) {
                 console.error(error);
