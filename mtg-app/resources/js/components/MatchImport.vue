@@ -53,6 +53,7 @@ import { X, XCircle } from 'lucide-vue-next';
                     <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
                         <option value="" disabled>Select a format</option>
                         <option value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
+                        <option value="Gulag Commander - Season 1">Gulag Commander - Season 1</option>
                         <option value="Casual Commander">Casual Commander</option>
                         <option value="Custom Game">Custom Game</option>
                     </select>
