@@ -52,8 +52,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     <label for="format" class="block text-sm font-medium mb-1">Format</label>
                     <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
                         <option value="" disabled>Select a format</option>
-                        <option value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
-                        <option value="Gulag Commander - Season 1">Gulag Commander - Season 1</option>
+                        <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
+                        <option value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
                         <option value="Casual Commander">Casual Commander</option>
                         <option value="Custom Game">Custom Game</option>
                     </select>
@@ -338,7 +338,7 @@ import { X, XCircle } from 'lucide-vue-next';
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 0',
+                    format: 'Gulag Commander - Season 1',
                     totalTurns: '',
                     bracket: '2'
                 },
@@ -579,7 +579,7 @@ import { X, XCircle } from 'lucide-vue-next';
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 0',
+                    format: 'Gulag Commander - Season 1',
                     totalTurns: '',
                     bracket: '2'
                 };

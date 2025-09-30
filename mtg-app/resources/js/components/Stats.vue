@@ -41,8 +41,8 @@ import { useRouter } from 'vue-router';
                         <label class="block text-sm font-medium  mb-1">Format</label>
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option class="text-black" value="all">All Formats</option>
-                            <option class="text-black" value="Gulag Commander - Season 0" selected>Gulag Commander - Season 0</option>
-                            <option class="text-black" value="Gulag Commander - Season 1">Gulag Commander - Season 1</option>
+                            <option class="text-black" value="Gulag Commander - Season 0" >Gulag Commander - Season 0</option>
+                            <option class="text-black" value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
                             <option class="text-black" value="Casual Commander">Casual Commander</option>
                             <option class="text-black" value="Custom Game">Custom Game</option>
                         </select>
@@ -349,7 +349,7 @@ export default {
             error: null,
             filters: {
                 period: 'all',
-                format: 'Gulag Commander - Season 0',
+                format: 'Gulag Commander - Season 1',
                 bracket: 'all',
                 player: 'all'
             },
@@ -384,7 +384,6 @@ export default {
             return player.win_rate;
         },
         isSeasonZero() {
-            //return false;
             return this.filters.format === 'Gulag Commander - Season 0';
         },
     },
