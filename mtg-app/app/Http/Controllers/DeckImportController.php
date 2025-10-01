@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use \Illuminate\Support\Str;
 use App\Models\Deck;
 use App\Models\Card;
+use App\Models\OverriddenCard;
 use App\Models\DeckCard;
 use App\Services\ScryfallService;
 
@@ -308,7 +309,11 @@ class DeckImportController extends Controller
     }
 
     public function findCard(array $cardData)
-    {
+    {   
+        if(!isset($cardData['name']))
+        {
+            $cardData['name'] = $cardData['card_name'];
+        }
         $card = Card::where('card_name', $cardData['name'])
             ->when($cardData['set'], function($query) use ($cardData) 
             {
@@ -767,6 +772,51 @@ class DeckImportController extends Controller
             ],
             'failures' => $failedCards,
             'deck_id' => $deck->deck_id
+        ]);
+    }
+
+    public function override(Request $request, $deck_id)
+    {
+        $request->validate([
+            'overrides' => 'required|array',
+        ]);
+
+        $deck = Deck::findOrFail($deck_id);
+
+        $seasonId = app(SeasonController::class)->getActiveSeasonId();
+        if (is_object($seasonId) && method_exists($seasonId, 'getData')) {
+            $seasonId = $seasonId->getData();
+        }
+
+        $overrides = $request->input('overrides');
+        $results = [];
+
+        foreach ($overrides as $base_card_id => $override_card_data) {
+            Log::info($request->all());
+
+            $overrideCard = $this->findCard($override_card_data);
+
+            $overridden = OverriddenCard::updateOrCreate(
+                [
+                    'season_id' => $seasonId,
+                    'deck_id' => $deck->deck_id,
+                    'base_card_id' => $base_card_id,
+                ],
+                [
+                    'override_card_id' => $overrideCard->card_id,
+                ]
+            );
+
+            $results[] = [
+                'base_card_id' => $base_card_id,
+                'override_card_id' => $overrideCard->card_id,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Overrides saved.',
+            'results' => $results,
         ]);
     }
 }

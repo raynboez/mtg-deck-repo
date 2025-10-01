@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, Component } from 'vue';
-import card_back from '../../assets/card-back.png';
 import { createPopper } from '@popperjs/core';
-import { RefreshCw, Ban, Sword, Lightbulb, Target, Swords} from 'lucide-vue-next';
+import { RefreshCw, Ban, Loader, Lightbulb, Target, Swords, ArrowRight } from 'lucide-vue-next';
 import axios from 'axios';
 import DeckAssignmentModal from './DeckAssignmentModal.vue';
 import AddCardModal from './AddCardModal.vue'; 
 import RemoveCardModal from './RemoveCardModal.vue'; 
+import card_back from '../../assets/card-back.png';
 
 interface Card {
   card_id: number;
@@ -27,6 +27,29 @@ interface Card {
   reverse_card_id: number;
   quantity: number;
   is_banned: boolean;
+}
+
+interface ScryfallCard {
+  id: string;
+  name: string;
+  mana_cost: string;
+  type_line: string;
+  oracle_text: string;
+  set: string;
+  set_name: string;
+  collector_number: string;
+  image_uris?: {
+    normal: string;
+  };
+  card_faces?: Array<{
+    name: string;
+    image_uris: {
+      normal: string;
+    };
+  }>;
+  legalities: {
+    commander: string;
+  };
 }
 
 
@@ -88,6 +111,10 @@ const CARD_TYPE_ORDER = {
 const showAssignmentModal = ref(false);
 const showAddCardModal = ref(false);
 const showRemoveCardModal = ref(false);
+const showOverrideModal = ref(false);
+const showScryfallModal = ref(false);
+const overrideCardIndex = ref<number | null>(null);
+const overriddenCards = ref<Record<number, any>>({});
 
 const openEditModal = () => {
   showAssignmentModal.value = true;
@@ -108,6 +135,14 @@ const closeRemoveCardModal = () => {
   showRemoveCardModal.value = false;
 };
 
+const openOverrideModal = () => {
+  showOverrideModal.value = true;
+};
+
+const closeOverrideModal = () => {
+  showOverrideModal.value = false;
+};
+
 const isUpdating = ref(false);
 
 const updateFromUrl = async () => {
@@ -125,6 +160,33 @@ const updateFromUrl = async () => {
   } finally {
     isUpdating.value = false;
   }
+};
+
+const transformScryfallToDisplay = (scryfallData: ScryfallCard, originalCard: Card): any => {
+  const imageUrl = scryfallData.image_uris?.normal || 
+                  scryfallData.card_faces?.[0]?.image_uris?.normal || 
+                  card_back;
+
+  return {
+    card_id: originalCard.card_id,
+    face_card_id: originalCard.card_id,
+    reverse_card_id: null,
+    quantity: originalCard.quantity,    
+    card_name: scryfallData.name,
+    mana_cost: scryfallData.mana_cost || '',
+    cmc: originalCard.cmc,
+    type_line: scryfallData.type_line,
+    oracle_text: scryfallData.oracle_text || '',
+    colours: originalCard.colours,
+    colour_identity: originalCard.colour_identity,
+    image_url: imageUrl,
+    scryfall_uri: `https://scryfall.com/card/${scryfallData.set}/${scryfallData.collector_number}`,
+    set: scryfallData.set,
+    collector_number: scryfallData.collector_number,
+    is_gamechanger: false,
+    oracle_id: scryfallData.id,
+    is_banned: false
+  };
 };
 
 const saveDeckDetails = async (details: any) => {
@@ -278,8 +340,23 @@ const handleMouseLeave = () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   isMounted.value = true;
+  try {
+    const response = await axios.get(`/api/decks/${props.deck.deck_id}/overrides`);
+    if (response.status === 200 && response.data) {
+      response.data.forEach((override: any) => {
+        overriddenCards.value[override.base_card.card_id] = {
+          ...override.override_card,
+          quantity: override.base_card.quantity,
+          card_id: override.base_card.card_id,
+          is_banned: false
+        };
+      });
+    }
+  } catch (error) {
+    console.error('Failed to fetch overrides:', error);
+  }
 });
 
 onUnmounted(() => {
@@ -383,6 +460,41 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
   }
 };
 
+const bannedCards = computed(() => props.cards.filter(card => card.is_banned));
+
+const openScryfallModal = (index: number) => {
+  overrideCardIndex.value = index;
+  showScryfallModal.value = true;
+};
+
+const closeScryfallModal = () => {
+  showScryfallModal.value = false;
+  overrideCardIndex.value = null;
+};
+
+const handleOverrideSelect = (cardData: any) => {
+  if (overrideCardIndex.value !== null) {
+    const originalCard = bannedCards.value[overrideCardIndex.value];
+    overriddenCards.value[originalCard.card_id] = transformScryfallToDisplay(cardData, originalCard);
+    showScryfallModal.value = false;
+    overrideCardIndex.value = null;
+  }
+};
+
+const saveOverrides = async () => {
+  try {
+    await axios.post(`/api/decks/${props.deck.deck_id}/override`, {
+      deck_id: props.deck.deck_id,
+      overrides: overriddenCards.value
+    });
+    showToastNotification('Overrides saved!');
+    closeOverrideModal();
+  } catch (e) {
+    showToastNotification('Failed to save overrides');
+  }
+};
+
+
 </script>
 <template>
   <div class="deck-viewer">
@@ -418,6 +530,21 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
           </select>
         </div>
       -->
+        <button 
+          v-if="containsBannedCards"
+          id="overrideBansBtn"
+          class="
+            bg-green-600 hover:bg-green-700 
+            text-white font-medium 
+            h-9 px-4
+            rounded-md
+            transition-all duration-200
+            shadow-sm hover:shadow-md
+            focus:ring-2 focus:ring-green-500 focus:ring-opacity-50
+          "
+          @click="openOverrideModal">
+          OVERRIDE BANS
+        </button>
         <button 
           id="copyDeckBtn"
           class="
@@ -493,7 +620,7 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
         @click="updateFromUrl"
         :disabled="isUpdating"
       >
-        <Loader2 
+        <Loader
           v-if="isUpdating" 
           class="w-4 h-4 animate-spin" 
         />
@@ -635,8 +762,48 @@ const removeCardFromDeck = async (cardId: number, cardName: string, quantity?: n
       @close="closeRemoveCardModal"
       @remove-card="removeCardFromDeck"
     />
+
+    <div v-if="showOverrideModal" class="modal-overlay">
+      <div class="modal-content rounded-xl shadow-xl p-6 w-full max-w-lg relative">
+        <h2 class="text-xl font-bold mb-4 text-center">Override Banned Cards</h2>
+        <div class="max-h-[60vh] overflow-y-auto pr-2">
+          <div
+            v-for="(card, idx) in bannedCards"
+            :key="card.card_id"
+            class="flex items-center justify-center gap-4"
+          >
+            <img
+              :src="card.image_url"
+              :alt="card.card_name"
+              class="w-40 h-56 rounded-xl shadow border"
+            />
+            <ArrowRight class="w-20 h-20 text-gray-400" />
+            <div class="relative">
+              <img
+                :src="overriddenCards[card.card_id]?.image_url || card_back"
+                class="w-40 h-56 rounded-xl shadow border cursor-pointer hover:ring-2 hover:ring-blue-400"
+                @click="openScryfallModal(idx)"
+                :alt="overriddenCards[card.card_id]?.card_name || 'Override card'"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" @click="closeOverrideModal">Cancel</button>
+          <button class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700" @click="saveOverrides">Save Overrides</button>
+        </div>
+      </div>
+      
+      <AddCardModal
+        v-if="showScryfallModal"
+        :show="showScryfallModal"
+        :deck-id="0"
+        :override-mode="true"
+        @close="closeScryfallModal"
+        @select="handleOverrideSelect"
+      />
+    </div>
   </div>
-  
 </template>
 
 <style scoped>
@@ -727,5 +894,42 @@ button:disabled:hover {
 .toast-leave-from {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--color-background);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 1rem;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 </style>

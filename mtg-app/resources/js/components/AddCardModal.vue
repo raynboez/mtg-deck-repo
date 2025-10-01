@@ -77,7 +77,7 @@
           <span>Selected: <strong>{{ selectedCard.name }}</strong></span>
           
           <!-- for deck mode -->
-          <div v-if="!isBanlistMode" class="quantity-control">
+          <div v-if="!isBanlistMode && !isOverrideMode" class="quantity-control">
             <label>Quantity:</label>
             <div class="quantity-buttons">
               <button @click="decrementQuantity">−</button>
@@ -116,7 +116,7 @@
             :disabled="!selectedCard"
           >
             <span v-if="!isAdding">
-              {{ isBanlistMode ? 'Add to Banlist' : 'Add to Deck' }}
+              {{ isBanlistMode || isOverrideMode ? 'Select Card' : 'Add to Deck' }}
             </span>
             <span v-else>Adding...</span>
           </button>
@@ -163,12 +163,14 @@ interface User {
 const props = defineProps<{
   show: boolean;
   deckId: number;
+  overrideMode?: boolean;
   seasonId?: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'add-card', cardData: any, quantity: number, userId?: number, notes?: string): void;
+  (e: 'select', cardData: any): void;
 }>();
 
 const searchQuery = ref('');
@@ -263,8 +265,10 @@ const handleAddAction = async () => {
   isAdding.value = true;
 
   try {
+    if(props.overrideMode) {
+      emit('select', selectedCard.value);
+    }
     if (isBanlistMode.value) {
-      console.log(selectedUserId);
       emit('add-card', selectedCard.value, 1, selectedUserId, notes);
     } else {
       emit('add-card', selectedCard.value, quantity.value);
@@ -276,9 +280,10 @@ const handleAddAction = async () => {
     isAdding.value = false;
   }
 };
-const isBanlistMode = computed(() => props.deckId === 0);
+const isBanlistMode = computed(() => props.deckId === 0 && !props.overrideMode);
+const isOverrideMode = computed(() => props.overrideMode);
 const modalTitle = computed(() => 
-  isBanlistMode.value ? 'Add Card to Banlist' : 'Add Card to Deck'
+  isBanlistMode.value || isOverrideMode ? 'Select Card' : 'Add Card to Deck'
 );
 
 const fetchUsers = async () => {

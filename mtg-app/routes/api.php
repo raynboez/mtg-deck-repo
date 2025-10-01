@@ -22,6 +22,8 @@ Route::group(['middleware' => ['web']], function()
     Route::put('/decks/{deck}/add', [DeckImportController::class, 'addCard']);
     Route::post('/decks/{deck}/remove', [DeckImportController::class, 'removeCard']);
     Route::get('/decks/{deck}/updateFromUrl', [DeckImportController::class, 'updateFromUrl']);
+    Route::post("/decks/{deck}/override", [DeckImportController::class, 'override']);
+    Route::get("/decks/{deck}/overrides", [DeckController::class, 'getOverrides']);
 
     Route::get('/decks/user', [DeckController::class, 'userDecks']);    
     Route::get('/decks/user/{userId}', [DeckController::class, 'userDecksById']);
