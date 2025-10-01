@@ -54,6 +54,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         <option value="" disabled>Select a format</option>
                         <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
                         <option value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
+                        <option value="IRL Commander" >IRL Commander</option>
                         <option value="Casual Commander">Casual Commander</option>
                         <option value="Custom Game">Custom Game</option>
                     </select>

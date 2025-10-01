@@ -123,6 +123,7 @@ export default {
                 else
                 {
                     formData.append('url', this.url);
+                    details.url = this.url;
                 }
                 console.log(formData);
 

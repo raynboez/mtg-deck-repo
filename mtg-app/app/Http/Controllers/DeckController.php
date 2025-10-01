@@ -59,7 +59,7 @@ class DeckController extends Controller
             
             if (in_array($cardData->oracle_id, $banned)) {
                 $cardData->is_banned = 1;
-                $containsBannedCards = 1;
+                $containsBannedCards+= 1;
             } else {
                 $cardData->is_banned = 0;
             }

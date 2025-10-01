@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, Component } from 'vue';
 import { createPopper } from '@popperjs/core';
-import { RefreshCw, Ban, Loader, Lightbulb, Target, Swords, ArrowRight } from 'lucide-vue-next';
+import { RefreshCw, Ban, Loader, CircleAlert, Target, Swords, ArrowRight } from 'lucide-vue-next';
 import axios from 'axios';
 import DeckAssignmentModal from './DeckAssignmentModal.vue';
 import AddCardModal from './AddCardModal.vue'; 
@@ -504,9 +504,13 @@ const saveOverrides = async () => {
         <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
         <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
         <p class="text-muted-foreground mb-6">Cards in Deck: {{ cardcount }}</p>
-        <div v-if="containsBannedCards" class="flex items-center gap-2 text-red-600 font-semibold mb-4">
+        <div v-if="containsBannedCards > Object.keys(overriddenCards).length" class="flex items-center gap-2 text-red-600 font-semibold mb-4">
           <Ban class="w-5 h-5"/>
           <span>This deck contains banned cards!</span>
+        </div>
+        <div v-if="containsBannedCards === Object.keys(overriddenCards).length && containsBannedCards !== 0" class="flex items-center gap-2 text-yellow-600 font-semibold mb-4">
+          <CircleAlert class="w-5 h-5"/>
+          <span>This deck contains overridden banned cards!</span>
         </div>
       </div>
       

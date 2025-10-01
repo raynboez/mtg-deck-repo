@@ -43,6 +43,7 @@ import { useRouter } from 'vue-router';
                             <option class="text-black" value="all">All Formats</option>
                             <option class="text-black" value="Gulag Commander - Season 0" >Gulag Commander - Season 0</option>
                             <option class="text-black" value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
+                            <option class="text-black" value="IRL Commander" >IRL Commander</option>
                             <option class="text-black" value="Casual Commander">Casual Commander</option>
                             <option class="text-black" value="Custom Game">Custom Game</option>
                         </select>

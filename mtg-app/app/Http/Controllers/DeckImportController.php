@@ -77,8 +77,7 @@ class DeckImportController extends Controller
                 if(str_contains($card->type_line,'Legendary')){
                     array_push($potentialCommanders, $card);
                 }
-
-                if($card['section'] !== 'main'){
+                if($cardData['section'] !== 'main'){
                     continue;
                     //skip sideboard cards for now
                 }                
