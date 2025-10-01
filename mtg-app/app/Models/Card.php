@@ -71,6 +71,11 @@ class Card extends Model
 					->withPivot('prim_key', 'is_commander', 'is_companion', 'is_main_deck', 'is_sideboard', 'quantity');
 	}
 
+	public function overridden_cards()
+	{
+		return $this->hasMany(OverriddenCard::class, 'override_card_id');
+	}
+
 	public function reverse_cards()
 	{
 		return $this->hasMany(ReverseCard::class, 'face_card_id');

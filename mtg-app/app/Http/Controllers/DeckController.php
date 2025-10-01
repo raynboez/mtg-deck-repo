@@ -52,6 +52,7 @@ class DeckController extends Controller
         $containsBannedCards = 0;
         $cardArr = array();
         $reverse = array();
+
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
             $cardData->quantity = $card->quantity;
@@ -140,7 +141,6 @@ class DeckController extends Controller
     }
 
 
-    //TTS api response (no point getting this working)
     public function getDeckJson(Request $request, $deckId)
     {
         $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
@@ -161,5 +161,28 @@ class DeckController extends Controller
         $exportText = app(DeckExportService::class)->generateExportText($deck);      
         
         return response()->make($exportText, 200, ['Content-Type' => 'text/plain']);
+    }
+
+    public function getOverrides(Request $request, $deckId)
+    {
+        $seasonId = $this->seasonController->getActiveSeasonId();
+        $overrides = DB::table('overridden_cards')
+            ->where('deck_id', $deckId)
+            ->where('season_id', $seasonId)
+            ->get();
+
+        $result = [];
+        foreach ($overrides as $override) {
+            $baseCard = DB::table('cards')->where('card_id', $override->base_card_id)->first();
+            $overrideCard = DB::table('cards')->where('card_id', $override->override_card_id)->first();
+            if ($baseCard && $overrideCard) {
+                $result[] = [
+                    'base_card' => $baseCard,
+                    'override_card' => $overrideCard
+                ];
+            }
+        }
+
+        return response()->json($result);
     }
 }

@@ -3,55 +3,76 @@ namespace App\Services;
 
 use App\Models\Deck;
 use App\Models\Card;
+use App\Models\OverriddenCard;
+use App\Models\DeckCard;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\SeasonController;
 
 class DeckExportService
 {
     public function generateExportText(Deck $deck): string
     {
         $exportLines = [];
+        $seasonId = app(SeasonController::class)->getActiveSeasonId();
         
-        // Add About section
         $exportLines[] = "About";
         $exportLines[] = "Name " . $deck->deck_name;
-        $exportLines[] = ""; // Empty line
+        $exportLines[] = ""; 
 
-        // Load cards with pivot data if not already loaded
-        if (!$deck->relationLoaded('cards')) {
-            $deck->load('cards');
+        $deckCards = DeckCard::where('deck_id', $deck->deck_id)
+            ->with('card')
+            ->get();
+
+        $processedCards = [];
+
+        foreach ($deckCards as $deckCard) {
+            $card = Card::find($deckCard->card_id);
+            
+            $overriddenCard = OverriddenCard::where('season_id', $seasonId)
+                ->where('deck_id', $deck->deck_id)
+                ->where('base_card_id', $card->card_id)
+                ->first();
+
+            if ($overriddenCard) {
+                $card = Card::findOrFail($overriddenCard->override_card_id);
+            }
+            
+            $processedCards[] = [
+                'card' => $card,
+                'quantity' => $deckCard->quantity ?? 1,
+                'is_commander' => $deckCard->is_commander ?? false
+            ];
         }
 
-        // Process commanders
-        $commanders = $deck->cards->filter(function ($card) {
-            return $card->pivot->is_commander ?? false;
+        $commanders = array_filter($processedCards, function ($item) {
+            return $item['is_commander'];
         });
 
-        if ($commanders->isNotEmpty()) {
+        if (!empty($commanders)) {
             $exportLines[] = "Commander";
             foreach ($commanders as $commander) {
                 $exportLines[] = $this->formatCardLine(
-                    $commander->pivot->quantity ?? 1,
-                    $commander
+                    $commander['quantity'],
+                    $commander['card']
                 );
             }
-            $exportLines[] = ""; // Empty line after commanders
+            $exportLines[] = "";
         }
 
-        // Process main deck cards
-        $mainDeckCards = $deck->cards->reject(function ($card) {
-            return $card->pivot->is_commander ?? false;
+        $mainDeckCards = array_filter($processedCards, function ($item) {
+            return !$item['is_commander'];
         });
 
         $exportLines[] = "Deck";
         
-        // Sort cards alphabetically
-        $sortedCards = $mainDeckCards->sortBy(function ($card) {
-            return $card->name;
+        usort($mainDeckCards, function ($a, $b) {
+            return strcmp($a['card']->card_name, $b['card']->card_name);
         });
 
-        foreach ($sortedCards as $card) {
+        foreach ($mainDeckCards as $cardItem) {
             $exportLines[] = $this->formatCardLine(
-                $card->pivot->quantity ?? 1,
-                $card
+                $cardItem['quantity'],
+                $cardItem['card']
             );
         }
 
