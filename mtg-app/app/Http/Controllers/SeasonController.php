@@ -30,7 +30,7 @@ class SeasonController extends Controller
 
     public function getActiveSeasonId()
     {
-        $currentDate = now()->format('Y-m-d');
+        $currentDate = now()->format('Y-m-d H:i:s');
         $season = Season::where('date_ended', '>=', $currentDate)
             ->where('id', '!=', 0)
             ->orderBy('date_started', 'asc')
