@@ -270,6 +270,25 @@ const getCardImage = (card: Card): string => {
   return card.image_url || card_back;
 };
 
+const getOverriddenCardImage = (card: Card): string => {
+  const override = overriddenCards.value[card.card_id];
+  console.log('Override for card', card.card_id, ':', override);
+  
+  if (override && override.image_url) {
+    return override.image_url;
+  }
+  return card_back;
+};
+
+const isOverridden = (card: Card): boolean => {
+  const override = overriddenCards.value[card.card_id];
+  
+  if (override && override.image_url) {
+    return true;
+  }
+  return false;
+};
+
 const getCardDisplayData = (card: Card): Card => {
   const reverseCard = reverseCardsMap.value[card.card_id];
   if (showingReverse.value[card.card_id] && reverseCard) {
@@ -502,8 +521,12 @@ const saveOverrides = async () => {
       <div>
         <h1 class="text-2xl font-bold mb-4">{{ deck.deck_name }} - Bracket {{ deck.power_level }}</h1>
         <p class="text-muted-foreground mb-4">{{ deck.description }}</p>
-        <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>
-        <p class="text-muted-foreground mb-6">Cards in Deck: {{ cardcount }}</p>
+        <p class="text-muted-foreground mb-6">Win-Loss: {{ deckstats }}</p>  
+        <div class="flex items-center gap-2 text-muted-foreground font-semibold mb-6">
+          <Ban v-if="cardcount < 100" class="w-5 h-5 text-red-600"/>
+          <span>Cards in Deck: {{ cardcount }}</span>
+          <Ban v-if="cardcount < 100" class="w-5 h-5 text-red-600"/>
+        </div>
         <div v-if="containsBannedCards > Object.keys(overriddenCards).length" class="flex items-center gap-2 text-red-600 font-semibold mb-4">
           <Ban class="w-5 h-5"/>
           <span>This deck contains banned cards!</span>
@@ -646,10 +669,28 @@ const saveOverrides = async () => {
             @mouseleave="handleMouseLeave"
             @click="toggleCardReverse(card)"
           >
-            <img 
+            <img v-if="!card.is_banned"
               :src="getCardImage(card)" 
               :alt="card.card_name"
               class="w-full rounded-xl border border-background transition-colors cursor-pointer"
+              loading="lazy"
+            />
+            <img v-if="card.is_banned && !isOverridden(card)"
+              :src="getCardImage(card)" 
+              :alt="card.card_name"
+              class="w-full rounded-xl border border-background transition-colors cursor-pointer"
+              loading="lazy"
+            />
+            <img v-if="card.is_banned && isOverridden(card)"
+              :src="getCardImage(card)" 
+              :alt="card.card_name"
+              class="w-full rounded-xl border border-background transition-colors cursor-pointer card-behind"
+              loading="lazy"
+            />
+            <img v-if="card.is_banned && isOverridden(card)"
+              :src="getOverriddenCardImage(card)" 
+              :alt="card.card_name"
+              class="w-full rounded-xl border border-background transition-colors cursor-pointer card-infront"
               loading="lazy"
             />
             <div v-if="card.quantity > 1" class="absolute bottom-1 left-1 bg-gray-200 text-black text-xs font-semibold px-2 py-1 rounded-md">
@@ -659,7 +700,13 @@ const saveOverrides = async () => {
               <Swords class="w-4 h-4" />
             </div>
             <div 
-              v-if="card.is_banned" 
+              v-if="card.is_banned && isOverridden(card)"
+              class="absolute inset-0 flex items-center justify-center pointer-events-none svg"
+            >
+              <Ban class="w-full h-full text-red-600" style="filter: drop-shadow(0 0 0 black) drop-shadow(0 0 1px black) drop-shadow(0 0 2px black);" />
+            </div>
+            <div 
+              v-if="card.is_banned && !isOverridden(card)"
               class="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
               <Ban class="w-full h-full text-red-600" style="filter: drop-shadow(0 0 0 black) drop-shadow(0 0 1px black) drop-shadow(0 0 2px black);" />
@@ -935,5 +982,19 @@ button:disabled:hover {
   padding: 1rem;
   flex-grow: 1;
   overflow-y: auto;
+}
+
+.card-behind, .svg {
+  width: 90%;
+  height: 90%;
+}
+
+.card-infront {
+  position: absolute;
+  z-index: 1;
+  width: 90%;
+  height: 90%;
+  top: 10%;
+  left: 10%;
 }
 </style>
