@@ -91,68 +91,71 @@ export default {
     },
     methods: {        
         async saveDeckDetails(details) {
-            try {
-                const response = await axios.put(`/api/decks/${this.importedDeckId}`, {
-                name: details.name,
-                description: details.description,
-                commanders: details.commanders,
-                power_level: details.power_level,
-                url: details.url
-                });
-                
-                window.location.href = `/deck/${this.importedDeckId}`;
-            } catch (error) {
-                console.error('Failed to save deck details:', error);
+          try {
+              const response = await axios.put(`/api/decks/${this.importedDeckId}`, {
+                  name: details.name,
+                  description: details.description,
+                  commanders: details.commanders,
+                  power_level: details.power_level,
+                  url: details.url
+              });
+              
+              this.resetForm();
+              
+              window.location.href = `/deck/${this.importedDeckId}`;
+          } catch (error) {
+              console.error('Failed to save deck details:', error);
+          }
+      },
+
+      resetForm() {
+          this.form = {
+              deck_name: '',
+              deck_description: '',
+          };
+          this.url = '';
+          this.deckText = '';
+          this.activeTab = 'url';
+      },
+
+      async submitImport() {
+        this.loading = true;
+        this.error = null;
+        this.success = false;
+
+        try {
+            const formData = new FormData();
+            formData.append('deck_name', this.form.deck_name);
+            formData.append('deck_description', this.form.deck_description)
+            
+            if(this.activeTab === 'text') {
+                formData.append('text', this.deckText);
+            } else {
+                formData.append('url', this.url);
             }
-        },
+            
+            console.log(formData);
 
-        async submitImport() {
-            this.loading = true;
-            this.error = null;
-            this.success = false;
-
-
-            try {
-                const formData = new FormData();
-                formData.append('deck_name', this.form.deck_name);
-                formData.append('deck_description', this.form.deck_description)
-                if(this.activeTab === 'text')
-                {
-                    formData.append('text', this.deckText);
+            const response = await axios.post('/api/decks/import', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
                 }
-                else
-                {
-                    formData.append('url', this.url);
-                    details.url = this.url;
-                }
-                console.log(formData);
+            });
+            
+            this.success = true;
+            this.importedDeckId = response.data.deck_id;
+            this.potentialCommanders = response.data.potential_commanders;
+            this.potentialCompanions = response.data.potential_companions;
+            
+            this.showAssignmentModal = true;
 
-                const response = await axios.post('/api/decks/import', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                
-                this.success = true;
-                this.importedDeckId = response.data.deck_id;
-                this.potentialCommanders = response.data.potential_commanders;
-                this.potentialCompanions = response.data.potential_companions;
-                this.showAssignmentModal = true;
-
-                this.form = {
-                    deck_name: '',
-                    deck_description: '',
-                    url: '',
-                    text: ''
-                };
-
-            } catch (error) {
-                console.error(error);
-                this.error = error.response?.data?.message || 'Failed to import';
-            } finally {
-                this.loading = false;
-            }
+        } catch (error) {
+            console.error(error);
+            this.error = error.response?.data?.message || 'Failed to import';
+        } finally {
+            this.loading = false;
         }
+      }
     }
 }
 </script>

@@ -67,7 +67,7 @@ const props = defineProps<{
   potentialCommanders: number[];
   deckstats: string | null;
   cardcount: number | null;
-  containsBannedCards: number | null;
+  containsBannedCards: number;
   url:string | null;
   from_url: number | null;
 }>();

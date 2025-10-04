@@ -133,7 +133,7 @@ export default {
         this.deckDetails = {
           name: this.initialDeckData.deck_name || '',
           description: this.initialDeckData.description || '',
-          url: this.url || '',
+          url: this.initalDeckData.url || '',
           commanders: [...(this.initialDeckData.commanders || [])],
           power_level: this.initialDeckData.power_level?.toString() || ''
         };

@@ -105,7 +105,7 @@ class DeckImportController extends Controller
         }
 
 
-
+        
 
 
         return response()->json([
@@ -116,7 +116,7 @@ class DeckImportController extends Controller
             ],
             'failures' => $failedCards,
             'deck_id' => $deck->deck_id,
-            'potential_commanders' => $potentialCommanders
+            'potential_commanders' => $potentialCommanders,
         ]);
     }
 
@@ -127,16 +127,17 @@ class DeckImportController extends Controller
         {
             $lines = file($request->file('file')->path(), FILE_IGNORE_NEW_LINES);
         }
-        if($request->filled('url'))
+        else if($request->filled('url'))
         {
             return $this->importDeckFromUrl($request->input('url'));
         }
-        if($request->filled('text'))
+        else if($request->filled('text'))
         {
             $lines = explode("\n", $request->input('text'));
+        } else {
+            throw new \InvalidArgumentException('No decklist provided');
         }
-        $this->parseDecklist($lines);
-        throw new \InvalidArgumentException('No decklist provided');
+        return $this->parseDecklist($lines);
     }
 
     protected function importDeckFromUrl(string $url): array

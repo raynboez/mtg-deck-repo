@@ -56,7 +56,7 @@ export default {
       potentialCommanders: [],
       deckstats: null,
       cardcount: null,
-      containsBannedCards: null,
+      containsBannedCards: 0,
       url: null,
       from_url: null
     }
