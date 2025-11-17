@@ -474,6 +474,7 @@ class DeckImportController extends Controller
         $cardData = $validated['scryfallData'];
         Log::info('Adding card: ' . json_encode($cardData));
         $card = $this->findCard($cardData);
+        Log::info('Found card: ' . json_encode($card));
         if(!$card)
                 {
                     response()->json([

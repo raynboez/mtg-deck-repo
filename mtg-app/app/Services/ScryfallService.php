@@ -12,11 +12,21 @@ class ScryfallService
     public function searchCard(string $name, ?string $set = null, ?string $number = null)
     {
         try {
-            $normalizedName = $this->normalizeCardName($name);
-            
-            $exactMatch = $this->tryExactMatch($normalizedName, $set, $number);
+
+            // First try exact match with original name
+            $exactMatch = $this->tryExactMatch($name, $set, $number);
             if ($exactMatch) {
                 return $exactMatch;
+            }
+
+            // Then try with normalized name
+            $normalizedName = $this->normalizeCardName($name);
+            
+            if ($normalizedName !== $name) {
+                $exactMatch = $this->tryExactMatch($normalizedName, $set, $number);
+                if ($exactMatch) {
+                    return $exactMatch;
+                }
             }
 
             if (str_contains($normalizedName, '//')) {
