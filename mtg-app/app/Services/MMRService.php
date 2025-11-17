@@ -93,11 +93,13 @@ class MMRService
         while ($i < $eliminatedPlayers->count()) {
             $currentOrderLost = $eliminatedPlayers[$i]['order_lost'];
             $drawGroup = $eliminatedPlayers->where('order_lost', $currentOrderLost)->values();
+            $groupSize = $drawGroup->count();
+            $averagePosition = $position + ($groupSize - 1) / 2;
             foreach ($drawGroup as $player) {
-                $playersWithPosition[] = array_merge($player, ['position' => $position]);
+                $playersWithPosition[] = array_merge($player, ['position' => $averagePosition]);
             }
-            $i += $drawGroup->count();
-            $position += $drawGroup->count();
+            $i += $groupSize;
+            $position += $groupSize;
         }
 
         $remainingPlayers = $players->where('is_winner', false)

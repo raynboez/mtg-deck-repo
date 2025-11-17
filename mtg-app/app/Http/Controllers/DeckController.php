@@ -143,7 +143,7 @@ class DeckController extends Controller
 
     public function getDeckJson(Request $request, $deckId)
     {
-        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $deck = DB::table('deck_cards')->where('deck_id', $deckId)->where('is_main_deck', 1)->get();
         $cardArr = array();
         foreach($deck as $card){
             $cardData = DB::table('cards')->where('card_id', $card->card_id)->first();
