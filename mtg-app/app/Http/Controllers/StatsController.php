@@ -91,7 +91,7 @@ class StatsController extends Controller
         $mmrService = app(\App\Services\MMRService::class);
         $datapointPadding = (isset($season) && $season->id == 1 || !isset($season))
             ? 0
-            : $mmrService->getStartingMMR();
+            : $mmrService->getStartingMMR($season->id);
 
         foreach ($matches as $match) {
             $labels[] = $match->played_at->format('d-m-y H:i');
@@ -143,6 +143,7 @@ class StatsController extends Controller
                         'points' => 0,
                         'first_bloods' => 0,
                         'motms' => 0,
+                        'jotms' => 0,
                         'colours' => [
                             'W' => 0,
                             'U' => 0,
@@ -166,6 +167,10 @@ class StatsController extends Controller
                 if($participant->motm){
                     $points = $points + 1;
                     $playerStats[$userId]['motms']++;
+                }
+                if($participant->jotm){
+                    $points = $points - 1;
+                    $playerStats[$userId]['jotms']++;
                 }
 
 

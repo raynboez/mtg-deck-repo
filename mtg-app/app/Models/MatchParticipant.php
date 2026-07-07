@@ -28,7 +28,7 @@ class MatchParticipant extends Model
         'match_id', 'user_id', 'deck_id', 'is_winner', 
         'starting_life', 'final_life', 'turn_order',
 		'turn_lost', 'order_lost', 'first_blood', 'motm',
-        'mmr_before', 'mmr_after', 'mmr_change'
+        'mmr_before', 'mmr_after', 'mmr_change', 'jotm'
     ];
 
     public function match()

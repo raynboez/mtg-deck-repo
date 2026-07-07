@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Matches;
 use App\Models\MatchParticipant;
+use App\Models\Season;
 use App\Rules\DeckIdOrBorrow;
 use App\Services\MMRService;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class MatchController extends Controller
             'players.*.is_winner' => 'required|boolean',
             'players.*.first_blood' => 'required|boolean',
             'players.*.motm' => 'required|boolean',
+            'players.*.jotm' => 'required|boolean',
             'players.*.borrow_user_id' => 'required_if:players.*.deck_id,borrow|exists:users,user_id',
             'players.*.borrow_deck_id' => 'required_if:players.*.deck_id,borrow|exists:decks,deck_id',
             'date_played' => 'required|date',
@@ -67,6 +69,7 @@ class MatchController extends Controller
                         'turn_lost' => $playerData['turn_lost'] | 0,
                         'first_blood' => $playerData['first_blood'],
                         'motm' => $playerData['motm'] | 0,
+                        'jotm' => $playerData['jotm'] | 0,
                         'mmr_before' => $currentMMR,
                         'mmr_change' => $mmrData['change'],
                         'mmr_after' => $currentMMR + $mmrData['change'],
@@ -84,6 +87,7 @@ class MatchController extends Controller
                         'turn_lost' => $playerData['turn_lost'] | 0,
                         'first_blood' => $playerData['first_blood'],
                         'motm' => $playerData['motm'] | 0,
+                        'jotm' => $playerData['jotm'] | 0,
                         'mmr_before' => $currentMMR,
                         'mmr_change' => $mmrData['change'],
                         'mmr_after' => $currentMMR + $mmrData['change'],
@@ -141,6 +145,7 @@ class MatchController extends Controller
             ->orderBy('matches.played_at', 'DESC')
             ->first();
         
-        return $latestParticipant->mmr_after ?? app(MMRService::class)->getStartingMMR();
+        $seasonId = Season::where('name', $format)->value('id');
+        return $latestParticipant->mmr_after ?? app(MMRService::class)->getStartingMMR($seasonId);
     }
 }

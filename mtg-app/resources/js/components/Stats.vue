@@ -42,7 +42,8 @@ import { useRouter } from 'vue-router';
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option class="text-black" value="all">All Formats</option>
                             <option class="text-black" value="Gulag Commander - Season 0" >Gulag Commander - Season 0</option>
-                            <option class="text-black" value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
+                            <option class="text-black" value="Gulag Commander - Season 1" >Gulag Commander - Season 1</option>
+                            <option class="text-black" value="Gulag Commander - Season 2" selected>Gulag Commander - Season 2</option>
                             <option class="text-black" value="IRL Commander" >IRL Commander</option>
                             <option class="text-black" value="Casual Commander">Casual Commander</option>
                             <option class="text-black" value="Custom Game">Custom Game</option>
@@ -77,6 +78,10 @@ import { useRouter } from 'vue-router';
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
                     <div class="text-3xl font-bold text-green-600 mb-2">{{ mostMotmsPlayer }}</div>
                     <div class="">Most PotGs</div>
+                </div>
+                <div class="stat-card card rounded-xl shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ mostJotmsPlayer }}</div>
+                    <div class="">Most Fuck ups</div>
                 </div>
                 
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
@@ -186,6 +191,10 @@ import { useRouter } from 'vue-router';
                             <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
                                 <div class="font-semibold">{{ selectedPlayer.motms }}</div>
                                 <div>Play of the Game</div>
+                            </div>
+                            <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
+                                <div class="font-semibold">{{ selectedPlayer.jotms }}</div>
+                                <div>Fuck Ups</div>
                             </div>
                         </div>
                     </div>
@@ -350,7 +359,7 @@ export default {
             error: null,
             filters: {
                 period: 'all',
-                format: 'Gulag Commander - Season 1',
+                format: 'Gulag Commander - Season 2',
                 bracket: 'all',
                 player: 'all'
             },
@@ -375,6 +384,14 @@ export default {
             const player = this.statistics.player_stats.reduce((prev, current) => 
                 (prev.motms > current.motms) ? prev : current);
             return player.motms > 0 ? player.name : 'N/A';
+        },
+        mostJotmsPlayer() {
+            if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
+                return 'N/A';
+            }
+            const player = this.statistics.player_stats.reduce((prev, current) => 
+                (prev.jotms > current.jotms) ? prev : current);
+            return player.jotms > 0 ? player.name : 'N/A';
         },
         highestWinRate() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {

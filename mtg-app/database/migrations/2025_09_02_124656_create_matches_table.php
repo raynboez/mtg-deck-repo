@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('matches', function (Blueprint $table) {
             $table->integer('match_id', true);
-            $table->string('match_type'); // 'gulag commander', 'commander' 
+            $table->string('match_type');
             $table->integer('number_of_players');
             $table->integer('total_turns');
             $table->integer('bracket');

@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\MMRService;
 use App\Models\Matches;
+use App\Models\Season;
 use App\Models\MatchParticipant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +65,7 @@ class BackfillMMR extends Command
                         'turn_lost' => $participant->turn_lost,
                         'first_blood' => $participant->first_blood,
                         'motm' => $participant->motm,
+                        'jotm' => $participant->jotm,
                     ];
                 })->toArray();
                 $mmrChanges = $mmrService->calculateMatchMMR($playersData, $match->match_type);
@@ -108,7 +110,7 @@ class BackfillMMR extends Command
             ->whereNotNull('match_participants.mmr_after')
             ->orderBy('matches.played_at', 'DESC')
             ->first();
-        
-        return $latestParticipant->mmr_after ?? app(MMRService::class)->getStartingMMR();
+        $seasonId = Season::where('name', $format)->value('id');
+        return $latestParticipant->mmr_after ?? app(MMRService::class)->getStartingMMR($seasonId);
     }
 }

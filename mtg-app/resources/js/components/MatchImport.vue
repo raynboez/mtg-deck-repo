@@ -53,7 +53,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     <select id="format" v-model="matchDetails.format" class="w-full p-2 border border-input rounded-md bg-background" required>
                         <option value="" disabled>Select a format</option>
                         <option value="Gulag Commander - Season 0">Gulag Commander - Season 0</option>
-                        <option value="Gulag Commander - Season 1" selected>Gulag Commander - Season 1</option>
+                        <option value="Gulag Commander - Season 1" >Gulag Commander - Season 1</option>
+                        <option value="Gulag Commander - Season 2" selected>Gulag Commander - Season 2</option>
                         <option value="IRL Commander" >IRL Commander</option>
                         <option value="Casual Commander">Casual Commander</option>
                         <option value="Custom Game">Custom Game</option>
@@ -253,16 +254,7 @@ import { X, XCircle } from 'lucide-vue-next';
                             >
                         </div>
 
-                        <div class="form-group flex items-center">
-                            <input 
-                                type="checkbox" 
-                                :id="'firstblood-' + index" 
-                                v-model="player.first_blood"
-                                @change="setFirstBlood(index)"
-                                class="mr-2"
-                            >
-                            <label :for="'firstblood-' + index" class="text-sm font-medium">First Blood</label>
-                        </div>
+                        
                         <div class="form-group flex items-center">
                             <input 
                                 type="checkbox" 
@@ -273,7 +265,26 @@ import { X, XCircle } from 'lucide-vue-next';
                             >
                             <label :for="'motm-' + index" class="text-sm font-medium">Play of the Game</label>
                         </div>
-                        
+                        <div class="form-group flex items-center">
+                            <input 
+                                type="checkbox" 
+                                :id="'jotm-' + index" 
+                                v-model="player.jotm"
+                                @change="setJotm(index)"
+                                class="mr-2"
+                            >
+                            <label :for="'jotm-' + index" class="text-sm font-medium">Misplay of the Game</label>
+                        </div>
+                        <div class="form-group flex items-center">
+                            <input 
+                                type="checkbox" 
+                                :id="'firstblood-' + index" 
+                                v-model="player.first_blood"
+                                @change="setFirstBlood(index)"
+                                class="mr-2"
+                            >
+                            <label :for="'firstblood-' + index" class="text-sm font-medium">First Blood</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,7 +309,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -310,7 +322,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -322,7 +335,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -334,12 +348,13 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     }
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 1',
+                    format: 'Gulag Commander - Season 2',
                     totalTurns: '',
                     bracket: '2'
                 },
@@ -414,7 +429,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     turn_lost: null,
                     is_winner: false,
                     first_blood: false,
-                    motm: false
+                    motm: false,
+                    jotm: false
                 });
             },
             removePlayer(index) {
@@ -443,6 +459,13 @@ import { X, XCircle } from 'lucide-vue-next';
                 this.players.forEach((player, index) => {
                     if (index !== motmIndex) {
                         player.motm = false;
+                    }
+                });
+            },
+            setJotm(jotmIndex) {
+                this.players.forEach((player, index) => {
+                    if (index !== jotmIndex) {
+                        player.jotm = false;
                     }
                 });
             },
@@ -537,8 +560,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
-                        
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -550,7 +573,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -562,7 +586,8 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     },
                     {
                         user_id: '',
@@ -574,13 +599,14 @@ import { X, XCircle } from 'lucide-vue-next';
                         turn_lost: null,
                         is_winner: false,
                         first_blood: false,
-                        motm: false
+                        motm: false,
+                        jotm: false
                     }
                 ];
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 1',
+                    format: 'Gulag Commander - Season 2',
                     totalTurns: '',
                     bracket: '2'
                 };
