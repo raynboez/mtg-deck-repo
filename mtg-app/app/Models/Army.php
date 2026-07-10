@@ -39,8 +39,8 @@ class Army extends Model
 	protected $casts = [
 		'user_id' => 'int',
 		'points' => 'int',
-		'game_mode' => GameMode::class,
-		'faction' => Faction::class
+		'game_mode' => 'string',
+		'faction' => 'string'
 	];
 
 	protected $fillable = [

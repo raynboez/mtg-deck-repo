@@ -22,13 +22,13 @@ class ArmyImportController extends Controller
         set_time_limit(0);
         $validated = $request->validate([
             'army_name'=>'required|string',            
-            'game_mode'=>'required|string' . Rule::enum(GameMode::class),
-            'faction' => 'required|string' . Rule::enum(Faction::class),
+            'game_mode'=>['required', 'string', Rule::enum(GameMode::class)],
+            'faction' => ['required', 'string', Rule::enum(Faction::class)],
             'army_description'=>'nullable|string',
             'points' => 'nullable|integer',
-            'subfaction' => 'nullable|string' . Rule::in(array_column($validSubfactions, 'value')),
+            'subfaction' => 'nullable|string',
             'army_link' => 'nullable|string',
-            'list' => 'nullable|string',
+            'army_list' => 'nullable|string',
         ]);
 
         $user = auth()->user();
@@ -39,11 +39,11 @@ class ArmyImportController extends Controller
                 'description' => $validated['army_description'],
                 'user_id' => $user->user_id,
                 'game_mode' => $gamemode,
-                'faction'=>$faction,
+                'faction'=>$faction->value,
                 'subfaction'=>$validated['subfaction'],
                 'points'=>$validated['points'],
                 'army_link'=>$validated['army_link'],
-                'list'=>$validated['list'],
+                'list'=>$validated['army_list'],
         ]);
 
         return response()->json([

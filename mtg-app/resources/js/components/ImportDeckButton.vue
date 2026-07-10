@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Import } from 'lucide-vue-next';
+interface Props {
+    text?: string;
+}
+
+withDefaults(defineProps<Props>(), {
+    text: 'Import New Deck'
+});
 </script>
 
 <template>
@@ -8,6 +15,6 @@ import { Import } from 'lucide-vue-next';
         <Import color="var(--secondary)"/>
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate leading-tight font-semibold">Import New Deck</span>
+        <span class="mb-0.5 truncate leading-tight font-semibold">{{ text }}</span>
     </div>
 </template>

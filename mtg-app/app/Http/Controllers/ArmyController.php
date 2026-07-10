@@ -11,8 +11,14 @@ class ArmyController extends Controller
     public function userArmies(Request $request)
     {
         $user = $request->user()->user_id;
-        $decks = DB::table('armies')->where('user_id', $user)->get();
-        return response()->json($decks);
+        $armies = DB::table('armies')->where('user_id', $user)->get();
+        return response()->json($armies);
+    }
+
+    public function userArmiesById(Request $request, $userId)
+    {
+        $armies = DB::table('armies')->where('user_id', $userId)->get();
+        return response()->json($armies);
     }
 
     public function getUsers(Request $request)

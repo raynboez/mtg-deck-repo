@@ -19,7 +19,7 @@ class MMRService
         $playerCount = $players->count();
         $seasonId = Season::where('name', $format)->value('id');
         $playersWithPosition = $this->assignFinishingPositions($players);
-        $playersWithMMR = $this->getCurrentMMRForPlayers($playersWithPosition, $format, $seasonId);
+        $playersWithMMR = $this->getCurrentMMRForPlayers($playersWithPosition, $format);
 
         $mmrChanges = [];
         $averageMMR = $playersWithMMR->avg('current_mmr');

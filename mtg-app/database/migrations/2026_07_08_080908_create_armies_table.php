@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('game_mode', array_column(GameMode::cases(), 'value'));
             $table->integer('points')->nullable();
             $table->enum('faction', array_column(Faction::cases(), 'value'));
-            $table->enum('subfaction',array_column(array_merge(SubfactionAstartes::cases(), SubfactionChaos::cases(), SubfactionImperium::cases(), SubfactionXenos::cases()), 'value'))->nullable();
+            $table->text('subfaction');
             $table->text('army_link')->nullable();
             $table->text('list')->nullable();
             $table->timestamp('created_at')->nullable()->useCurrent();

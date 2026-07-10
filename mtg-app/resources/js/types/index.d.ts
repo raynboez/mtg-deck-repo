@@ -34,12 +34,19 @@ export interface User {
     created_at: string;
     updated_at: string;
     decks?: Deck[];
+    armies?: Army[];
 }
 
 export interface Deck {
     deck_name: string;
     deck_identity: string;
     deck_id: number;
+    href: string;
+};
+
+export interface Army {
+    army_name: string;
+    army_id: number;
     href: string;
 };
 

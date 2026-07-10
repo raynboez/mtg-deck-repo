@@ -27,8 +27,8 @@ import { X, XCircle } from 'lucide-vue-next';
 
                 <div class="form-group">
                     <label for="game_mode" class="block text-sm font-medium mb-1">Game Mode</label>
-                    <select id="game_mode" v-model="matchDetails.bracket" class="w-full p-2 border border-input rounded-md bg-background" required>
-                        <option value="Warhammer 40k" selected>Warhammer 40K</option>
+                    <select id="game_mode" v-model="matchDetails.game_mode" class="w-full p-2 border border-input rounded-md bg-background" required>
+                        <option value="Warhammer40k">Warhammer 40K</option>
                         <option value="Killteam">Killteam</option>
                     </select>
                 </div>
@@ -76,6 +76,8 @@ import { X, XCircle } from 'lucide-vue-next';
                             <select 
                                 :id="'player-name-' + index" 
                                 v-model="player.user_id"
+                                :disabled="!matchDetails.game_mode"
+                                :class="{'opacity-50 cursor-not-allowed': !matchDetails.game_mode}"
                                 @change="onUserChange(index, $event)"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
@@ -88,30 +90,31 @@ import { X, XCircle } from 'lucide-vue-next';
                         </div>
                         
                         <div class="form-group md:col-span-2">
-                            <label :for="'player-deck-' + index" class="block text-sm font-medium mb-1">Deck</label>
+                            <label :for="'player-army-' + index" class="block text-sm font-medium mb-1">{{ matchDetails.game_mode === 'Killteam' ? 'Kill Team' : 'Army' }}</label>
                             <select 
-                                :id="'player-deck-' + index" 
+                                :id="'player-army-' + index" 
                                 v-model="player.army_id"
-                                :disabled="!player.user_id"
-                                :class="{'opacity-50 cursor-not-allowed': !player.user_id}"
+                                :disabled="!player.user_id || !matchDetails.game_mode"
+                                :class="{'opacity-50 cursor-not-allowed': !player.user_id || !matchDetails.game_mode}"
+                                
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
                             >
-                                <option value="" disabled>Select an army</option>
+                                <option value="" disabled>{{ matchDetails.game_mode === 'Killteam' ? 'Select a Kill Team' : 'Select an Army' }}</option>
                                 <option 
                                     v-for="army in getUserArmies(player.user_id, )" 
-                                    :key="deck.deck_id" 
-                                    :value="deck.deck_id"
+                                    :key="army.army_id" 
+                                    :value="army.army_id"
                                 >
-                                    {{ deck.deck_name }}
+                                    {{ army.army_name }}
                                 </option>
-                                <option value="borrow">Borrow a Deck</option>
+                                <option value="borrow">Borrow an Army</option>
                             </select>
                         </div>
 
 
         
-                        <div v-if="player.deck_id === 'borrow'" class="borrow-fields">
+                        <div v-if="player.army_id === 'borrow'" class="borrow-fields">
                             <div class="form-group">
                                 <label :for="'borrow-user-' + index" class="block text-sm font-medium mb-1">Borrow From</label>
                                 <select 
@@ -128,59 +131,117 @@ import { X, XCircle } from 'lucide-vue-next';
                             </div>
                         
                         </div>
-                        <div v-if="player.deck_id === 'borrow'" class="borrow-fields">
+                        <div v-if="player.army_id === 'borrow'" class="borrow-fields">
                         <div class="form-group">
-                                <label :for="'borrow-deck-' + index" class="block text-sm font-medium mb-1">Deck to Borrow</label>
+                                <label :for="'borrow-army-' + index" class="block text-sm font-medium mb-1">Army to Borrow</label>
                                 <select 
-                                    :id="'borrow-deck-' + index" 
-                                    v-model="player.borrow_deck_id"
+                                    :id="'borrow-army-' + index" 
+                                    v-model="player.borrow_army_id"
                                     :disabled="!player.borrow_user_id"
                                     :class="{'opacity-50 cursor-not-allowed': !player.borrow_user_id}"
                                     class="w-full p-2 border border-input rounded-md bg-background"
                                     required
                                 >
-                                    <option value="" disabled>Select a deck</option>
+                                    <option value="" disabled>Select an army</option>
                                     <option 
-                                        v-for="deck in getUserDecks(player.borrow_user_id)" 
-                                        :key="deck.deck_id" 
-                                        :value="deck.deck_id"
+                                        v-for="army in getUserArmies(player.borrow_user_id)" 
+                                        :key="army.army_id" 
+                                        :value="army.army_id"
                                     >
-                                        {{ deck.deck_name }}
+                                        {{ army.army_name }}
                                     </option>
                                 </select>
                             </div>
                         </div>
-                    
                         
+                        <div v-if="matchDetails.game_mode === 'Warhammer40k'" class="form-group md:col-span-2">
+                                <label :for="'player-army-disposition' + index" class="block text-sm font-medium mb-1">Army Disposition</label>
+                                <select 
+                                    :id="'player-army-disposition' + index" 
+                                    v-model="player.disposition"
+                                    class="w-full p-2 border border-input rounded-md bg-background"
+                                    required
+                                >
+                                    <option value="" disabled>Select a disposition</option>
+                                    <option value="Take and Hold">Take and Hold</option>
+                                    <option value="Purge the Foe">Purge the Foe</option>
+                                    <option value="Disruption">Disruption</option>
+                                    <option value="Reconnaissance">Reconnaissance</option>
+                                    <option value="Priority Assets">Priority Assets</option>
+                                </select>
+                            </div>
+                        <div v-if="matchDetails.game_mode === 'Killteam'" class="form-group md:col-span-2">
+                                <label :for="'player-army-disposition' + index" class="block text-sm font-medium mb-1">Tac Op Choice</label>
+                                <select 
+                                    :id="'player-army-disposition' + index" 
+                                    v-model="player.disposition"
+                                    class="w-full p-2 border border-input rounded-md bg-background"
+                                    required
+                                >
+                                    <option value="" disabled>Select a Tac Op</option>
+                                    <optgroup label="Seek And Destroy">
+                                        <option value="Dominate">Dominate</option>
+                                        <option value="Rout">Rout</option>
+                                        <option value="Sweep & Clear">Sweep & Clear</option>
+                                    </optgroup>
+                                    <optgroup label="Security">
+                                        <option value="Plant Banner">Plant Banner</option>
+                                        <option value="Martyrs">Martyrs</option>
+                                        <option value="Envoy">Envoy</option>
+                                    </optgroup>
+                                    <optgroup label="Infiltration">
+                                        <option value="Plant Devices">Plant Devices</option>
+                                        <option value="Steal Intelligence">Steal Intelligence</option>
+                                        <option value="Track Enemy">Track Enemy</option>
+                                    </optgroup>
+                                    <optgroup label="Recon">
+                                        <option value="Flank">Flank</option>
+                                        <option value="Retrieval">Retrieval</option>
+                                        <option value="Scout Enemy Movement">Scout Enemy Movement</option>
+                                    </optgroup>
+                                </select>
+                            </div>
                         <div class="form-group">
-                            <label :for="'starting-life-' + index" class="block text-sm font-medium mb-1">Starting Life</label>
+                            <label :for="'victory-points-' + index" class="block text-sm font-medium mb-1">Victory Points</label>
                             <input 
-                                :id="'starting-life-' + index" 
+                                :id="'victory-points-' + index" 
                                 type="number" 
-                                v-model.number="player.starting_life"
+                                v-model.number="player.victory_points"
+                                min="0"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
                             >
                         </div>
                         
                         <div class="form-group">
-                            <label :for="'final-life-' + index" class="block text-sm font-medium mb-1">Final Life</label>
+                            <label :for="'primary-points-' + index" class="block text-sm font-medium mb-1">{{ matchDetails.game_mode === 'Killteam' ? 'Crit Op' : 'Primary Objective Points' }}</label>
                             <input 
-                                :id="'final-life-' + index" 
+                                :id="'primary-points-' + index" 
                                 type="number" 
-                                v-model.number="player.final_life"
+                                v-model.number="player.primary_points"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
                             >
                         </div>
                         
                         <div class="form-group">
-                            <label :for="'turn-order-' + index" class="block text-sm font-medium mb-1">Turn Order</label>
+                            <label :for="'secondary-points-' + index" class="block text-sm font-medium mb-1">{{ matchDetails.game_mode === 'Killteam' ? 'Tac Op' : 'Secondary Objective Points' }}</label>
                             <input 
-                                :id="'turn-order-' + index" 
+                                :id="'secondary-points-' + index" 
                                 type="number" 
-                                v-model.number="player.turn_order"
-                                min="1"
+                                v-model.number="player.secondary_points"
+                                :max="players.length"
+                                class="w-full p-2 border border-input rounded-md bg-background"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label :for="'tertiary-points-' + index" class="block text-sm font-medium mb-1">{{ matchDetails.game_mode === 'Killteam' ? 'Kill Op' : 'Paint Points' }}</label>
+                            <input 
+                                :id="'tertiary-points-' + index" 
+                                type="number" 
+                                v-model.number="player.tertiary_points"
                                 :max="players.length"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
@@ -200,64 +261,6 @@ import { X, XCircle } from 'lucide-vue-next';
                             <label :for="'winner-' + index" class="text-sm font-medium">Winner</label>
                         </div>
                         
-                        <div class="form-group">
-                            <label :for="'order-lost-' + index" class="block text-sm font-medium mb-1">Elimination Order</label>
-                            <input 
-                                :id="'order-lost-' + index" 
-                                type="number" 
-                                v-model.number="player.order_lost"
-                                min="0"
-                                :max="players.length"
-                                :disabled="player.is_winner"
-                                :class="{'opacity-50 cursor-not-allowed': player.winner}"
-                                class="w-full p-2 border border-input rounded-md bg-background"
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label :for="'turn-lost-' + index" class="block text-sm font-medium mb-1">Turn Lost</label>
-                            <input 
-                                :id="'turn-lost-' + index" 
-                                type="number" 
-                                v-model.number="player.turn_lost"
-                                min="0"
-                                :disabled="player.is_winner"
-                                :class="{'opacity-50 cursor-not-allowed': player.is_winner}"
-                                class="w-full p-2 border border-input rounded-md bg-background"
-                            >
-                        </div>
-
-                        
-                        <div class="form-group flex items-center">
-                            <input 
-                                type="checkbox" 
-                                :id="'motm-' + index" 
-                                v-model="player.motm"
-                                @change="setMotm(index)"
-                                class="mr-2"
-                            >
-                            <label :for="'motm-' + index" class="text-sm font-medium">Play of the Game</label>
-                        </div>
-                        <div class="form-group flex items-center">
-                            <input 
-                                type="checkbox" 
-                                :id="'jotm-' + index" 
-                                v-model="player.jotm"
-                                @change="setJotm(index)"
-                                class="mr-2"
-                            >
-                            <label :for="'jotm-' + index" class="text-sm font-medium">Misplay of the Game</label>
-                        </div>
-                        <div class="form-group flex items-center">
-                            <input 
-                                type="checkbox" 
-                                :id="'firstblood-' + index" 
-                                v-model="player.first_blood"
-                                @change="setFirstBlood(index)"
-                                class="mr-2"
-                            >
-                            <label :for="'firstblood-' + index" class="text-sm font-medium">First Blood</label>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -274,62 +277,28 @@ import { X, XCircle } from 'lucide-vue-next';
                 players: [
                     {
                         user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 1,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
+                        army_id: '',
+                        disposition: '',
+                        victory_points: 0,
+                        primary_points: null,
+                        secondary_points: null,
+                        tertiary_points: null,
+                        is_winner: false
                     },
                     {
                         user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 2,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
-                    },
-                    {
-                        user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 3,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
-                    },
-                    {
-                        user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 4,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
+                        army_id: '',
+                        disposition: '',
+                        victory_points: 0,
+                        primary_points: null,
+                        secondary_points: null,
+                        tertiary_points: null,
+                        is_winner: false
                     }
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 2',
-                    totalTurns: '',
-                    bracket: '2'
+                    game_mode: 'Warhammer40k',
                 },
                 loading: false,
                 error: null,
@@ -345,100 +314,94 @@ import { X, XCircle } from 'lucide-vue-next';
                     ({
                     id: user.user_id,
                     name: user.name,
-                    decks: [],
+                    armies: [],
                     }));
-                    this.users.forEach(user => this.fetchUserDecks(user.id));
+                    this.users.forEach(user => this.fetchUserArmies(user.id));
                     } catch (error) {
                         console.error('Error fetching users:', error);
                     }
             },
-            async fetchUserDecks(userId)
+            async fetchUserArmies(userId)
             {
                 try 
                 {
-                    let apiReq = '/api/decks/user/' + userId;
+                    let apiReq = '/api/warhammer/armies/user/' + userId;
                     const response = await axios.get(apiReq);
                     const user = this.users.find(u => u.id === userId);
                     if(user)
                     {
-                        user.decks = response.data.map((deck) => ({
-                            deck_name: deck.deck_name,
-                            deck_id: deck.deck_id,
+                        user.armies = response.data.map((army) => ({
+                            army_name: army.name,
+                            army_id: army.army_id,
                         }));
                     }
                 } 
                 catch (error) 
                 {
-                    console.error('Error fetching decks:', error);
+                    console.error('Error fetching armies:', error);
+                }
+
+            },
+            async fetchUserArmiesByGamemode(userId, gameMode)
+            {
+                try 
+                {
+                    let apiReq = '/api/warhammer/armies/user/' + userId + '/gamemode/' + gameMode;
+                    const response = await axios.get(apiReq);
+                    const user = this.users.find(u => u.id === userId);
+                    if(user)
+                    {
+                        user.armies = response.data.map((army) => ({
+                            army_name: army.name,
+                            army_id: army.army_id,
+                        }));
+                    }
+                } 
+                catch (error) 
+                {
+                    console.error('Error fetching armies:', error);
                 }
 
             },
             onUserChange(playerIndex, event) {
                 const userId = event.target.value;
                 this.players[playerIndex].user_id = userId;
-                this.players[playerIndex].deck_id = '';
+                this.players[playerIndex].army_id = '';
                 const user = this.users.find(u => u.id === userId);
-                if (user && (!user.decks || user.decks.length === 0)) {
-                    this.fetchUserDecks(userId);
+                if (user && (!user.armies || user.armies.length === 0)) {
+                    this.fetchUserArmiesByGamemode(userId, this.matchDetails.game_mode);
                 }
-            },            
-            getUserDecks(userId) {
+            },
+            getUserArmies(userId) {
                 
                 const user = this.users.find(u => Number(u.id) === Number(userId));
-                if (!user || !user.decks || !Array.isArray(user.decks)) {
+                if (!user || !user.armies || !Array.isArray(user.armies)) {
                     return [];
                 }
                 
-                return user.decks;
+                return user.armies;
             },
             addPlayer() {
                 this.players.push({
-                    user_id: '',
-                    deck_id: '',
-                    starting_life: 40,
-                    final_life: null,
-                    turn_order: this.players.length + 1,
-                    order_lost: null,
-                    turn_lost: null,
-                    is_winner: false,
-                    first_blood: false,
-                    motm: false,
-                    jotm: false
-                });
+                        user_id: '',
+                        army_id: '',
+                        disposition: '',
+                        victory_points: 0,
+                        primary_points: null,
+                        secondary_points: null,
+                        tertiary_points: null,
+                        is_winner: false
+                    });
             },
             removePlayer(index) {
                 this.players.splice(index, 1);
-                this.players.forEach((player, idx) => {
-                    player.turn_order = idx + 1;
-                });
             },
             setWinner(winnerIndex) {
                 this.players.forEach((player, index) => {
                     if (index !== winnerIndex) {
                         player.is_winner = false;
                     } else {
-                        player.order_lost = null;
-                    }
-                });
-            },
-            setFirstBlood(firstBloodIndex) {
-                this.players.forEach((player, index) => {
-                    if (index !== firstBloodIndex) {
-                        player.first_blood = false;
-                    }
-                });
-            },
-            setMotm(motmIndex) {
-                this.players.forEach((player, index) => {
-                    if (index !== motmIndex) {
-                        player.motm = false;
-                    }
-                });
-            },
-            setJotm(jotmIndex) {
-                this.players.forEach((player, index) => {
-                    if (index !== jotmIndex) {
-                        player.jotm = false;
+                        player.is_winner = true;
                     }
                 });
             },
@@ -456,14 +419,12 @@ import { X, XCircle } from 'lucide-vue-next';
                     const matchData = {
                         players: this.players,
                         date_played: this.matchDetails.date_played,
-                        totalTurns: this.matchDetails.totalTurns,
-                        format: this.matchDetails.format,
-                        bracket: this.matchDetails.bracket
+                        game_mode: this.matchDetails.game_mode,
                     };
                     
                     console.log(matchData);
                     
-                    const response = await axios.put('/api/matchRecord', matchData);
+                    const response = await axios.put('/api/warhammer/matchRecord', matchData);
                     
                     this.loading = false;
                     this.success = true;
@@ -489,17 +450,6 @@ import { X, XCircle } from 'lucide-vue-next';
                 }
             },
             validateForm() {
-                const hasWinner = this.players.some(player => player.is_winner);
-                const hasFirstBlood = this.players.some(player => player.first_blood);
-                if (!hasWinner) {
-                    this.error = 'Please mark one player as the winner.';
-                    return false;
-                }
-
-                if (!hasWinner) {
-                    this.error = 'Please mark one player that achieved First Blood.';
-                    return false;
-                }
                 
                 const allNamesFilled = this.players.every(player => player.name !== '');
                 
@@ -508,15 +458,15 @@ import { X, XCircle } from 'lucide-vue-next';
                     return false;
                 }
                 
-                const allDecksFilled = this.players.every(player => {
-                    if (player.deck_id === 'borrow') {
-                        return player.borrow_user_id && player.borrow_deck_id;
+                const allArmiesFilled = this.players.every(player => {
+                    if (player.army_id === 'borrow') {
+                        return player.borrow_user_id && player.borrow_army_id;
                     }
-                    return player.deck_id !== '';
+                    return player.army_id !== '';
                 });
                     
-                if (!allDecksFilled) {
-                    error.value = 'Please select a deck for all participants.';
+                if (!allArmiesFilled) {
+                    this.error = 'Please select an army for all participants.';
                     return false;
                 }
                 return true;
@@ -525,63 +475,29 @@ import { X, XCircle } from 'lucide-vue-next';
                 this.players = [
                     {
                         user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 1,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
+                        army_id: '',
+                        disposition: '',
+                        victory_points: 0,
+                        primary_points: null,
+                        secondary_points: null,
+                        tertiary_points: null,
+                        is_winner: false
                     },
                     {
                         user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 2,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
-                    },
-                    {
-                        user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 3,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
-                    },
-                    {
-                        user_id: '',
-                        deck_id: '',
-                        starting_life: 40,
-                        final_life: null,
-                        turn_order: 4,
-                        order_lost: null,
-                        turn_lost: null,
-                        is_winner: false,
-                        first_blood: false,
-                        motm: false,
-                        jotm: false
+                        army_id: '',
+                        disposition: '',
+                        victory_points: 0,
+                        primary_points: null,
+                        secondary_points: null,
+                        tertiary_points: null,
+                        is_winner: false
                     }
                 ];
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    format: 'Gulag Commander - Season 2',
-                    totalTurns: '',
-                    bracket: '2'
+                    game_mode: 'Warhammer40k',
                 };
                 
                 this.error = null;

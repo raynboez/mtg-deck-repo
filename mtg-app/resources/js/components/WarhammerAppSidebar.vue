@@ -15,66 +15,6 @@ import StatsButton from './StatsButton.vue';
 </script>
 <script lang="ts">
 
-const factionToManaSymbolsMap: Record<string, string[]> = {
-        'bant':   ['{W}','{U}','{G}'],
-        'esper':  ['{W}','{U}','{B}'],
-        'grixis': ['{U}','{B}','{R}'],
-        'jund':   ['{B}','{R}','{G}'],
-        'naya':   ['{W}','{R}','{G}'],      
-        'abzan':  ['{W}','{B}','{G}'],
-        'jeskai': ['{W}','{U}','{R}'],
-        'sultai': ['{U}','{B}','{G}'],
-        'mardu':  ['{W}','{B}','{R}'],
-        'temur':  ['{B}','{R}','{G}'],
-        'wubr':   ['{W}','{U}','{B}','{R}'],
-        'ubrg':   ['{U}','{B}','{R}','{G}'],
-        'wbrg':   ['{W}','{B}','{R}','{G}'],
-        'wurb':   ['{W}','{U}','{R}','{G}'],
-        'wubg':   ['{W}','{U}','{B}','{G}'],        
-        'FiveColor[': ['{W}','{U}','{B}','{R}','{G}'],
-        'Five-Color': ['{W}','{U}','{B}','{R}','{G}'],
-        'Colorless': ['{C}'],
-  'azorius': ['{W}', '{U}'],
-  'dimir': ['{U}', '{B}'],
-  'rakdos': ['{B}', '{R}'],
-  'gruul': ['{R}', '{G}'],
-  'selesnya': ['{W}', '{G}'],
-  'orzhov': ['{W}', '{B}'],
-  'izzet': ['{U}', '{R}'],
-  'golgari': ['{B}', '{G}'],
-  'boros': ['{W}', '{R}'],
-  'simic': ['{U}', '{G}'],
-  'white': ['{W}'],
-  'blue': ['{U}'],
-  'black': ['{B}'],
-  'red': ['{R}'],
-  'green': ['{G}'],
-  'colorless': ['{C}']
-};
-function factionToManaSymbols(factionName: string): string[] {
-  const normalizedName = factionName.toLowerCase().trim();
-  return factionToManaSymbolsMap[normalizedName];
-}
-
-function displayManaSymbols(factionName: string): string {
-  try {
-    const symbols = factionToManaSymbols(factionName);
-    return symbols.join(' ');
-  } catch (error) {
-    return `Unknown faction: ${factionName}`;
-  }
-}
-
-function getManaSymbolsHTML(factionName: string): string {
-  try {
-    const symbols = factionToManaSymbols(factionName);
-    return symbols.map(symbol => 
-      `<span class="mana ${symbol.replace(/[{}]/g, '').toLowerCase()}">${symbol}</span>`
-    ).join(' ');
-  } catch (error) {
-    return `<span>Unknown faction: ${factionName}</span>`;
-  }
-}
 export default {
     data()
     {
@@ -99,33 +39,31 @@ export default {
                 ({
                 id: user.user_id,
                 name: user.name,
-                decks: [],
+                armies: [],
                 }));
-                this.users.forEach(user => this.fetchUserDecks(user.id));
+                this.users.forEach(user => this.fetchUserArmies(user.id));
                 } catch (error) {
                     console.error('Error fetching users:', error);
                 }
         },
-        async fetchUserDecks(userId: number)
+        async fetchUserArmies(userId: number)
         {
             try 
             {
-                let apiReq = '/api/decks/user/' + userId;
+                let apiReq = '/api/warhammer/armies/user/' + userId;
                 const response = await axios.get(apiReq);
                 const user = this.users.find(u => u.id === userId);
                 if(user)
                 {
-                    user.decks = response.data.map((deck: any) => ({
-                        deck_identity: displayManaSymbols(deck.colour_identity),
-                        deck_name: deck.deck_name,
-                        deck_id: deck.deck_id,
-                        icon: getManaSymbolsHTML(deck.colour_identity),
+                    user.armies = response.data.map((army: any) => ({
+                        army_name: army.name,
+                        army_id: army.army_id,
                     }));
                 }
             } 
             catch (error) 
             {
-                console.error('Error fetching decks:', error);
+                console.error('Error fetching armies:', error);
             }
 
         },
@@ -139,13 +77,16 @@ export default {
             }
         },
     
-        getUserDecksAsNavItems(userId: number): NavItem[] 
+        getUserArmiesAsNavItems(userId: number): NavItem[] 
         {
+            console.log('Getting armies for userId:', userId);
+        
             const user = this.users.find(u => u.id === userId);
-            if (!user?.decks) return [];
-            return user.decks.map(deck => ({
-                title: deck.deck_name,
-                href: `/deck/${deck.deck_id}`,
+            if (!user?.armies) return [];
+            console.log('User armies:', user.armies);
+            return user.armies.map(army => ({
+                title: army.army_name,
+                href: `/armies/${army.army_id}`,
                 icon: LayoutGrid,
             }));
         }
@@ -178,15 +119,15 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton class="headerButton" size="lg" as-child>
-                        <Link :href="route('deck_import')">
-                            <ImportDeckButton text="Import New Deck"/>
+                        <Link :href="route('WarhammerArmyImport')">
+                            <ImportDeckButton text="Import New Army"/>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
         <Separator/>
-        <span class="flex flex-col p-2 mx-auto">Imported Decks</span>
+        <span class="flex flex-col p-2 mx-auto">Imported Armies</span>
         <SidebarContent>            
             <div v-for="user in users" :key="user.id" class="user-section">
                 <SidebarMenuItem @click="toggleUser(user.id)">
@@ -205,8 +146,8 @@ const footerNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <Transition name="slide">                
-                    <SidebarGroup v-if="expandedUsers.includes(user.id)" class="user-decks">
-                        <NavMain :items="getUserDecksAsNavItems(user.id)" :username=user.name />
+                    <SidebarGroup v-if="expandedUsers.includes(user.id)" class="user-armies">
+                        <NavMain :items="getUserArmiesAsNavItems(user.id)" :username=user.name />
                     </SidebarGroup>
                 </Transition>
             </div>
@@ -215,14 +156,14 @@ const footerNavItems: NavItem[] = [
         <SidebarFooter>
             <SidebarMenuItem>
                 <SidebarMenuButton class="headerButton" size="lg" as-child>
-                    <Link :href="route('match_import')">
+                    <Link :href="route('WarhammerImportMatch')">
                         <RecordMatchButton />
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton class="statsButton" size="lg" as-child>
-                    <Link :href="route('stats')">
+                    <Link :href="route('WarhammerStats')">
                         <StatsButton />
                     </Link>
                 </SidebarMenuButton>

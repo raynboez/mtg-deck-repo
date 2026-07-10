@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ArmyImportController;
+use App\Http\Controllers\ArmyController;
+use App\Http\Controllers\WarhammerMatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeckImportController;
@@ -28,7 +30,7 @@ Route::group(['middleware' => ['web']], function()
 
     Route::get('/decks/user', [DeckController::class, 'userDecks']);    
     Route::get('/decks/user/{userId}', [DeckController::class, 'userDecksById']);
-    Route::get('/decks/{userId}', [DeckController::class, 'getDeck']);
+    Route::get('/decks/{deckId}', [DeckController::class, 'getDeck']);
     Route::get('/users', [DeckController::class, 'getUsers']);
     Route::get('user/current', function (){return auth()->user()->user_id;});
     Route::get('/getDeck/{deckId}', [DeckController::class, 'getDeckExport']);
@@ -47,5 +49,10 @@ Route::group(['middleware' => ['web']], function()
         Route::post('/add', [BanController::class, 'addBannedCard']);
     });
 
-    Route::post('/army/import', [ArmyImportController::class, 'import']);
+    Route::post('/warhammer/armies/import', [ArmyImportController::class, 'import']);
+    Route::get('/warhammer/armies/user', [ArmyController::class, 'userArmies']);
+    Route::get('/warhammer/armies/user/{userId}', [ArmyController::class, 'userArmiesById']);
+    Route::get('/warhammer/armies/{armyId}', [ArmyController::class, 'getArmy']);
+
+    Route::put('/warhammer/matchRecord', [WarhammerMatchController::class, 'store']);
 });
