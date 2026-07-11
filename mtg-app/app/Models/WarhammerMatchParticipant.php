@@ -52,7 +52,9 @@ class WarhammerMatchParticipant extends Model
 		'victory_points',
 		'primary_points',
 		'secondary_points',
-		'tertiary_points'
+		'tertiary_points',
+		'primary_objective',
+		'secondary_objective'
 	];
 
 	public function army()

@@ -33,7 +33,7 @@ class WarhammerMatch extends Model
 	protected $casts = [
 		'number_of_players' => 'int',
 		'played_at' => 'datetime',
-		'game_mode' => GameMode::class
+		'game_mode' => 'string',
 	];
 
 	protected $fillable = [

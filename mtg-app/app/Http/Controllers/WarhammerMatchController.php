@@ -13,15 +13,17 @@ class WarhammerMatchController extends Controller
     {
         $validated = $request->validate([
             'players' => 'required|array',
+            'date_played' => 'required|date',
+            'game_mode' => ['required', 'string', Rule::enum(GameMode::class)],
             'players.*.user_id' => 'required|exists:users,user_id',
-            'players.*.army_id' => 'required|exists:army,army_id',
+            'players.*.army_id' => 'required|exists:armies,army_id',
             'players.*.is_winner' => 'required|boolean',
             'players.*.victory_points' => 'required|integer',            
-            'players.*.primary_score' => 'nullable|integer',
-            'players.*.secondary_score' => 'nullable|integer',
-            'players.*.tertiary_score' => 'nullable|integer',
-            'date_played' => 'required|date',
-            'game_mode' => 'required|string' .  Rule::enum(GameMode::class)
+            'players.*.primary_points' => 'nullable|integer',
+            'players.*.secondary_points' => 'nullable|integer',
+            'players.*.tertiary_points' => 'nullable|integer',
+            'players.*.primary_objective' => 'nullable|string',
+            'players.*.secondary_objective' => 'nullable|string',
         ]);
 
         $match = WarhammerMatch::create([
@@ -37,9 +39,11 @@ class WarhammerMatchController extends Controller
                 'army_id' => $playerData['army_id'],
                 'is_winner' => $playerData['is_winner'],
                 'victory_points' => $playerData['victory_points'],
-                'primary_score' => $playerData['primary_score'] ?? null,
-                'secondary_score' => $playerData['secondary_score'] ?? null,
-                'tertiary_score' => $playerData['tertiary_score'] ?? null
+                'primary_points' => $playerData['primary_points'] ?? null,
+                'secondary_points' => $playerData['secondary_points'] ?? null,
+                'tertiary_points' => $playerData['tertiary_points'] ?? null,
+                'primary_objective' => $playerData['primary_objective'] ?? null,
+                'secondary_objective' => $playerData['secondary_objective'] ?? null,
             ]);
         }
 

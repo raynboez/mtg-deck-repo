@@ -24,6 +24,8 @@ return new class extends Migration
             $table->integer('primary_points')->default(0)->nullable();
             $table->integer('secondary_points')->default(0)->nullable();
             $table->integer('tertiary_points')->default(0)->nullable();
+            $table->text('primary_objective')->nullable();
+            $table->text('secondary_objective')->nullable();
         });
     }
 

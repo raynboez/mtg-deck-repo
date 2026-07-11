@@ -28,10 +28,28 @@ import { X, XCircle } from 'lucide-vue-next';
                 <div class="form-group">
                     <label for="game_mode" class="block text-sm font-medium mb-1">Game Mode</label>
                     <select id="game_mode" v-model="matchDetails.game_mode" class="w-full p-2 border border-input rounded-md bg-background" required>
-                        <option value="Warhammer40k">Warhammer 40K</option>
+                        <option value="Warhammer 40k">Warhammer 40K</option>
                         <option value="Killteam">Killteam</option>
                     </select>
                 </div>
+
+
+                <div v-if="matchDetails.game_mode === 'Killteam'" class="form-group md:col-span-2">
+                                <label :for="critop" class="block text-sm font-medium mb-1">Crit Op Choice</label>
+                                <select 
+                                    :id="critop" 
+                                    v-model="critop"
+                                    class="w-full p-2 border border-input rounded-md bg-background"
+                                    required
+                                >
+                                    <option value="" disabled>Select a Crit Op</option>
+                                    
+                                    <option value="Loot">Loot</option>
+                                    <option value="Secure">Secure</option>
+                                    <option value="Transmission">Transmission</option>
+                                    
+                                </select>
+                            </div>
 
             </div>
 
@@ -154,11 +172,11 @@ import { X, XCircle } from 'lucide-vue-next';
                             </div>
                         </div>
                         
-                        <div v-if="matchDetails.game_mode === 'Warhammer40k'" class="form-group md:col-span-2">
+                        <div v-if="matchDetails.game_mode === 'Warhammer 40k'" class="form-group md:col-span-2">
                                 <label :for="'player-army-disposition' + index" class="block text-sm font-medium mb-1">Army Disposition</label>
                                 <select 
                                     :id="'player-army-disposition' + index" 
-                                    v-model="player.disposition"
+                                    v-model="player.primary_objective"
                                     class="w-full p-2 border border-input rounded-md bg-background"
                                     required
                                 >
@@ -174,7 +192,7 @@ import { X, XCircle } from 'lucide-vue-next';
                                 <label :for="'player-army-disposition' + index" class="block text-sm font-medium mb-1">Tac Op Choice</label>
                                 <select 
                                     :id="'player-army-disposition' + index" 
-                                    v-model="player.disposition"
+                                    v-model="player.secondary_objective"
                                     class="w-full p-2 border border-input rounded-md bg-background"
                                     required
                                 >
@@ -230,7 +248,6 @@ import { X, XCircle } from 'lucide-vue-next';
                                 :id="'secondary-points-' + index" 
                                 type="number" 
                                 v-model.number="player.secondary_points"
-                                :max="players.length"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
                             >
@@ -242,7 +259,6 @@ import { X, XCircle } from 'lucide-vue-next';
                                 :id="'tertiary-points-' + index" 
                                 type="number" 
                                 v-model.number="player.tertiary_points"
-                                :max="players.length"
                                 class="w-full p-2 border border-input rounded-md bg-background"
                                 required
                             >
@@ -278,7 +294,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     {
                         user_id: '',
                         army_id: '',
-                        disposition: '',
+                        primary_objective: '',
+                        secondary_objective: '',
                         victory_points: 0,
                         primary_points: null,
                         secondary_points: null,
@@ -288,7 +305,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     {
                         user_id: '',
                         army_id: '',
-                        disposition: '',
+                        primary_objective: '',
+                        secondary_objective: '',
                         victory_points: 0,
                         primary_points: null,
                         secondary_points: null,
@@ -298,8 +316,9 @@ import { X, XCircle } from 'lucide-vue-next';
                 ],
                 matchDetails: {
                     date_played: new Date().toISOString().slice(0, 16),
-                    game_mode: 'Warhammer40k',
+                    game_mode: 'Warhammer 40k',
                 },
+                critop: '',     
                 loading: false,
                 error: null,
                 success: false
@@ -385,7 +404,8 @@ import { X, XCircle } from 'lucide-vue-next';
                 this.players.push({
                         user_id: '',
                         army_id: '',
-                        disposition: '',
+                        primary_objective: '',
+                        secondary_objective: '',
                         victory_points: 0,
                         primary_points: null,
                         secondary_points: null,
@@ -422,6 +442,11 @@ import { X, XCircle } from 'lucide-vue-next';
                         game_mode: this.matchDetails.game_mode,
                     };
                     
+                    if(this.matchDetails.game_mode === 'Killteam') {
+                        for (let player of matchData.players) {
+                            player.primary_objective = this.critop;
+                        }
+                    }
                     console.log(matchData);
                     
                     const response = await axios.put('/api/warhammer/matchRecord', matchData);
@@ -476,7 +501,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     {
                         user_id: '',
                         army_id: '',
-                        disposition: '',
+                        primary_objective: '',
+                        secondary_objective: '',
                         victory_points: 0,
                         primary_points: null,
                         secondary_points: null,
@@ -486,7 +512,8 @@ import { X, XCircle } from 'lucide-vue-next';
                     {
                         user_id: '',
                         army_id: '',
-                        disposition: '',
+                        primary_objective: '',
+                        secondary_objective: '',
                         victory_points: 0,
                         primary_points: null,
                         secondary_points: null,
@@ -497,7 +524,7 @@ import { X, XCircle } from 'lucide-vue-next';
                 
                 this.matchDetails = {
                     date_played: new Date().toISOString().slice(0, 16),
-                    game_mode: 'Warhammer40k',
+                    game_mode: 'Warhammer 40k',
                 };
                 
                 this.error = null;
