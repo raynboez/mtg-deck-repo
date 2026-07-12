@@ -43,8 +43,8 @@ class WarhammerMatch extends Model
 		'played_at'
 	];
 
-	public function warhammer_match_participants()
-	{
-		return $this->hasMany(WarhammerMatchParticipant::class, 'match_id');
-	}
+	public function participants()
+    {
+        return $this->hasMany(WarhammerMatchParticipant::class, 'match_id');
+    }
 }

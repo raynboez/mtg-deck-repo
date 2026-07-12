@@ -26,6 +26,9 @@ return new class extends Migration
             $table->integer('tertiary_points')->default(0)->nullable();
             $table->text('primary_objective')->nullable();
             $table->text('secondary_objective')->nullable();
+            $table->integer('mmr_before')->nullable();
+            $table->integer('mmr_after')->nullable();
+            $table->integer('mmr_change')->nullable();
         });
     }
 

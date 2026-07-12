@@ -23,7 +23,7 @@ import { useRouter } from 'vue-router';
 
         <div v-else>
             <header class="text-center mb-12">
-                <h1 class="text-4xl font-bold mb-2">MTG Match Statistics</h1>
+                <h1 class="text-4xl font-bold mb-2">Warhammer Match Statistics</h1>
                 <p class="">Track your performance and progress over time</p>
             </header>
 
@@ -41,19 +41,8 @@ import { useRouter } from 'vue-router';
                         <label class="block text-sm font-medium  mb-1">Format</label>
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
                             <option class="text-black" value="all">All Formats</option>
-                            <option class="text-black" value="Gulag Commander - Season 0" >Gulag Commander - Season 0</option>
-                            <option class="text-black" value="Gulag Commander - Season 1" >Gulag Commander - Season 1</option>
-                            <option class="text-black" value="Gulag Commander - Season 2" selected>Gulag Commander - Season 2</option>
-                            <option class="text-black" value="IRL Commander" >IRL Commander</option>
-                            <option class="text-black" value="Casual Commander">Casual Commander</option>
-                            <option class="text-black" value="Custom Game">Custom Game</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium  mb-1">Bracket</label>
-                        <select v-model="filters.bracket" @change="fetchStats" class="w-full text-black-1000 p-2 border border-gray-300 rounded-md">
-                            <option value="all">All Brackets</option>
-                            <option  class="text-black" v-for="n in 5" :value="n">{{ n }}</option>
+                            <option class="text-black" value="Warhammer 40k" >Warhammer 40k</option>
+                            <option class="text-black" value="Killteam" >Killteam</option>
                         </select>
                     </div>
                     <div>
@@ -123,8 +112,8 @@ import { useRouter } from 'vue-router';
                             </div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
-                            <div class="font-semibold text-purple-600">{{ player.favourite_deck }}</div>
-                            <div class="text-black">Favourite Deck</div>
+                            <div class="font-semibold text-purple-600">{{ player.favourite_army }}</div>
+                            <div class="text-black">Favourite Army</div>
                         </div>
                     </div>
                 </div>
@@ -200,9 +189,9 @@ import { useRouter } from 'vue-router';
                     </div>
 
                     <div>
-                        <h4 class="font-medium mb-2">Favourite Deck</h4>
+                        <h4 class="font-medium mb-2">Favourite Army</h4>
                         <div class="p-3 bg-gray-50 rounded-md">
-                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_deck }}</div>
+                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_army }}</div>
                         </div>
                     </div>
 
@@ -227,11 +216,11 @@ import { useRouter } from 'vue-router';
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div class="card rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold mb-4">{{ isSeasonZero ? 'Points' : 'Gulag Rating' }}</h3>
+                    <h3 class="text-xl font-semibold mb-4">{{ 'Gulag Rating' }}</h3>
                     <canvas ref="winChart" width="400" height="250"></canvas>
                 </div>
                 <div class="card rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold mb-4">Colour Identity Popularity</h3>
+                    <h3 class="text-xl font-semibold mb-4">Faction Popularity</h3>
                     <canvas ref="colourChart" width="400" height="250"></canvas>
                 </div>
             </div>
@@ -536,7 +525,7 @@ export default {
                 if (this.filters.bracket !== 'all') params.append('bracket', this.filters.bracket);
                 if (this.filters.player !== 'all') params.append('player', this.filters.player);
                 
-                const url = `/api/stats${params.toString() ? `?${params.toString()}` : ''}`;
+                const url = `/api/warhammer/stats${params.toString() ? `?${params.toString()}` : ''}`;
                 const response = await axios.get(url);
                 this.statistics = response.data.statistics;
                 console.log(this.statistics);
@@ -585,6 +574,19 @@ export default {
                 const colourCtx = this.$refs.colourChart.getContext('2d');
                 
                 const factionColorMap = {
+
+                    "Black Templars" : 'W',
+                    "Blood Angels": 'W',
+                    "Dark Angels": 'W',
+                    "Deathwatch": 'W',
+                    "Imperial Fists": 'W',
+                    "Iron Hands": 'W',
+                    "Raven Guard": 'W',
+                    "Salamanders": 'W',
+                    "Space Marines": 'W',
+                    "Space Wolves": 'W',
+                    "Ultramarines": 'W',
+                    "White Scars": 'W',
                     'MonoWhite': 'W',
                     'MonoBlue': 'U', 
                     'MonoBlack': 'B',
@@ -753,6 +755,18 @@ export default {
     },
 };
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 <style scoped>
 .fixed {
