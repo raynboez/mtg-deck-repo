@@ -59,7 +59,7 @@ class WarhammerMatchParticipant extends Model
 
 	public function army()
 	{
-		return $this->belongsTo(Army::class);
+		return $this->belongsTo(Army::class, 'army_id');
 	}
 
 	public function warhammer_match()
@@ -69,6 +69,6 @@ class WarhammerMatchParticipant extends Model
 
 	public function user()
 	{
-		return $this->belongsTo(User::class);
+		return $this->belongsTo(User::class, 'user_id');
 	}
 }

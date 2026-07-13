@@ -281,7 +281,7 @@ import { useRouter } from 'vue-router';
                                     
                                     </span>
                                     <span class="text-sm ">
-                                    {{ player.user?.name || player.name }} playing {{ player.deck.deck_name }} - 
+                                    {{ player.user?.name || player.name }} playing {{ player.army.army_name }} - 
                                     <span v-show="player.is_winner" class="text-green-600">🏆 with {{ player.final_life }}hp</span>
                                     <span v-show="!player.is_winner" class="text-red-600"> Lost on turn {{ player.turn_lost }} at {{ player.final_life }}hp</span>
                                     </span>
