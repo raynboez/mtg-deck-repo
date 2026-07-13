@@ -11,8 +11,9 @@ use App\Models\WarhammerMatch;
 use App\Models\MatchParticipant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use Log;
+
 
 class WarhammerStatsController extends Controller
 {
@@ -63,7 +64,7 @@ class WarhammerStatsController extends Controller
         }
     }
 
-    private function calculateStatistics($matches, $format): array
+    private function calculateStatistics($matches, $game_mode): array
     {
         $totalMatches = $matches->count();
         
@@ -74,9 +75,9 @@ class WarhammerStatsController extends Controller
         $colourDistribution = [];
         $labels = [];
         $datasets = [];
-        $season = Season::where('name', $format)->first();
+        $season = Season::where('name', $game_mode)->first();
         if(isset($season)){
-            $labels[] = $season->date_started->format('d-m-y H:i');
+            $labels[] = $season->date_started->game_mode('d-m-y H:i');
         } else {
             $labels[] = "00-00-00 00:00";
         }
@@ -91,13 +92,6 @@ class WarhammerStatsController extends Controller
             $labels[] = $match->played_at->format('d-m-y H:i');
             $totalParticipants += $match->participants->count();
             $totalTurns+=$match->total_turns;
-            if (isset($match->bracket)) {
-                $bracket = $match->bracket;
-                if (!isset($bracketStats[$bracket])) {
-                    $bracketStats[$bracket] = 0;
-                }
-                $bracketStats[$bracket]++;
-            }
             $position = 0;
             $order_lost = 0;
             $same_order = 0;
@@ -132,18 +126,16 @@ class WarhammerStatsController extends Controller
                         'losses' => 0,
                         'total_games' => 0,
                         'armies' => [],
-                        'total_starting_life' => 0,
-                        'total_final_life' => 0,
+                        'total_victory_points' => 0,
+                        'total_primary_points' => 0,
+                        'total_secondary_points' => 0,
+                        'total_tertiary_points' => 0,
                         'points' => 0,
-                        'first_bloods' => 0,
-                        'motms' => 0,
-                        'jotms' => 0,
-                        'colours' => [
-                            'W' => 0,
-                            'U' => 0,
-                            'B' => 0,
-                            'R' => 0,
-                            'G' => 0                      
+                        'factions' => [
+                            'Astartes' => 0,
+                            'Chaos' => 0,
+                            'Imperium' => 0,
+                            'Xenos' => 0               
                         ],
                         'mmr_history' => [],
                     ];
@@ -154,24 +146,14 @@ class WarhammerStatsController extends Controller
                         $playerStats[$userId]['mmr_history'][] = $participant->mmr_after;
                     }   
                 }
-                if($participant->first_blood){
-                    $points = $points + 1;
-                    $playerStats[$userId]['first_bloods']++;
-                }
-                if($participant->motm){
-                    $points = $points + 1;
-                    $playerStats[$userId]['motms']++;
-                }
-                if($participant->jotm){
-                    $points = $points - 1;
-                    $playerStats[$userId]['jotms']++;
-                }
 
 
                 $playerStats[$userId]['points'] += $points;
                 $playerStats[$userId]['total_games']++;
-                $playerStats[$userId]['total_starting_life'] += $participant->starting_life;
-                $playerStats[$userId]['total_final_life'] += $participant->final_life;
+                $playerStats[$userId]['total_victory_points'] += $participant->victory_points;
+                $playerStats[$userId]['total_primary_points'] += $participant->primary_points;
+                $playerStats[$userId]['total_secondary_points'] += $participant->secondary_points;
+                $playerStats[$userId]['total_tertiary_points'] += $participant->tertiary_points;
 
                 if ($participant->is_winner) {
                     $playerStats[$userId]['wins']++;
@@ -201,24 +183,21 @@ class WarhammerStatsController extends Controller
                 } else {
                     $datasets[$userId]['data'][] = $participant->mmr_after;
                 }
-                if ($participant->deck_id) {
-                    $deckName = $participant->deck->deck_name ?? 'Unknown Deck';
-                    if (!isset($playerStats[$userId]['decks'][$deckName])) {
-                        $playerStats[$userId]['decks'][$deckName] = 0;
-                        $colour = $participant->deck->colour_identity;
-                        if(!isset($colourDistribution[$colour])){
-                        $colourDistribution[$colour] = 0;
+                if ($participant->army_id) {
+                    $armyName = $participant->army->name ?? 'Unknown Army';
+                    if (!isset($playerStats[$userId]['armies'][$armyName])) {
+                        $playerStats[$userId]['armies'][$armyName] = 0;
+                        $faction = $participant->army->faction;
+                        if(!isset($FactionDistribution[$faction])){
+                        $FactionDistribution[$faction] = 0;
                     }
-                    $colourDistribution[$colour]++;
+                    $FactionDistribution[$faction]++;
                     }
-                    $playerStats[$userId]['decks'][$deckName]++;
+                    $playerStats[$userId]['armies'][$armyName]++;
                     
-                    $coloursArray = json_decode($participant->deck->colours, true);
-                    foreach ($coloursArray as $c) {
-                        if (isset($playerStats[$userId]['colours'][$c])) {
-                            $playerStats[$userId]['colours'][$c]++;
-                        }
-                    }                    
+                    $faction = $participant->army->faction;
+                    
+                    $playerStats[$userId]['factions'][$faction]++;                   
                 }
             }
         }
@@ -228,19 +207,25 @@ class WarhammerStatsController extends Controller
                 ? round(($player['wins'] / $player['total_games']) * 100, 1) 
                 : 0;
             
-            $player['avg_starting_life'] = $player['total_games'] > 0 
-                ? round($player['total_starting_life'] / $player['total_games'], 1) 
+            $player['avg_victory_points'] = $player['total_games'] > 0 
+                ? round($player['total_victory_points'] / $player['total_games'], 1) 
                 : 0;
             
-            $player['avg_final_life'] = $player['total_games'] > 0 
-                ? round($player['total_final_life'] / $player['total_games'], 1) 
+            $player['avg_primary_points'] = $player['total_games'] > 0 
+                ? round($player['total_primary_points'] / $player['total_games'], 1) 
+                : 0;
+                $player['avg_secondary_points'] = $player['total_games'] > 0 
+                ? round($player['total_secondary_points'] / $player['total_games'], 1) 
+                : 0;
+                $player['avg_tertiary_points'] = $player['total_games'] > 0 
+                ? round($player['total_tertiary_points'] / $player['total_games'], 1) 
                 : 0;
 
-            if (!empty($player['decks'])) {
-                arsort($player['decks']);
-                $player['favourite_deck'] = array_key_first($player['decks']);
+            if (!empty($player['armies'])) {
+                arsort($player['armies']);
+                $player['favourite_army'] = array_key_first($player['armies']);
             } else {
-                $player['favourite_deck'] = 'No decks played';
+                $player['favourite_army'] = 'No armies played';
             }
 
             if (!empty($player['mmr_history'])) {
@@ -253,7 +238,7 @@ class WarhammerStatsController extends Controller
                 $player['lowest_season_mmr'] = null;
             }
 
-            unset($player['total_starting_life'], $player['total_final_life'], $player['decks'], $player['mmr_history']);
+            unset($player['total_starting_life'], $player['total_final_life'], $player['armies'], $player['mmr_history']);
         }
 
         return [
@@ -261,17 +246,13 @@ class WarhammerStatsController extends Controller
             'labels' => $labels,
             'datasets' => $datasets,
             'average_players_per_game' => $totalMatches > 0 ? round($totalParticipants / $totalMatches, 1) : 0,
-            'average_turns_per_game' => $totalMatches > 0 ? round($totalTurns / $totalMatches, 1) : 0,
             'player_stats' => array_values($playerStats),
-            'colour_distribution' => $colourDistribution,
-            'bracket_distribution' => $bracketStats,
+            'faction_distribution' => $FactionDistribution,
             'recent_matches' => $matches->map(function ($match) {
                 return [
                     'id' => $match->match_id,
                     'date' => $match->played_at->format('Y-m-d'),
-                    'format' => $match->match_type,
-                    'totalTurns' => $match->total_turns,
-                    'bracket' => $match->bracket ?? null,
+                    'game_mode' => $match->game_mode,
                     'players' => $match->participants->toArray(),
                     'winner' => $match->participants->where('is_winner', true)->first()->user->name ?? 'Unknown',
                 ];
@@ -284,26 +265,21 @@ class WarhammerStatsController extends Controller
     {
         $validated = $request->validate([
             'period' => 'sometimes|string|in:all,month,week',
-            'format' => 'sometimes|string',
-            'bracket' => 'sometimes|integer|min:1|max:5',
+            'game_mode' => 'sometimes|string',
         ]);
 
         $period = $validated['period'] ?? 'all';
-        $format = $validated['format'] ?? 'all';
-        $bracket = $validated['bracket'] ?? 'all';
+        $game_mode = $validated['game_mode'] ?? 'all';
 
-        $participantQuery = WarhammerMatchParticipant::with(['match', 'user', 'deck'])
+        $participantQuery = WarhammerMatchParticipant::with(['match', 'user', 'army'])
             ->where('user_id', $playerId);
 
-        $participantQuery->whereHas('match', function ($query) use ($period, $format, $bracket) {
+        $participantQuery->whereHas('match', function ($query) use ($period, $game_mode) {
             if ($period !== 'all') {
                 $query->where('played_at', '>=', $this->getDateFromPeriod($period));
             }
-            if ($format !== 'all') {
-                $query->where('format', $format);
-            }
-            if ($bracket !== 'all') {
-                $query->where('bracket', $bracket);
+            if ($game_mode !== 'all') {
+                $query->where('game_mode', $game_mode);
             }
         });
 
@@ -314,7 +290,7 @@ class WarhammerStatsController extends Controller
         return response()->json([
             'success' => true,
             'player_id' => $playerId,
-            'filters' => compact('period', 'format', 'bracket'),
+            'filters' => compact('period', 'game_mode'),
             'statistics' => $stats,
         ]);
     }
