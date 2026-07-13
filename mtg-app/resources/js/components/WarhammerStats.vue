@@ -65,12 +65,12 @@ import { useRouter } from 'vue-router';
                     <div class="">Most Wins</div>
                 </div>
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">{{ mostMotmsPlayer }}</div>
-                    <div class="">Most PotGs</div>
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ mostScorePlayer }}</div>
+                    <div class="">Highest Avg Score</div>
                 </div>
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">{{ mostJotmsPlayer }}</div>
-                    <div class="">Most Fuck ups</div>
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ leastScorePlayer }}</div>
+                    <div class="">Lowest Avg Score</div>
                 </div>
                 
                 <div class="stat-card card rounded-xl shadow-md p-6 text-center">
@@ -105,14 +105,14 @@ import { useRouter } from 'vue-router';
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <div class="text-center p-2 bg-blue-50 rounded-md text-base">
                             <div class="font-semibold text-blue-600">
-                                {{ isSeasonZero ? player.points : player.current_season_mmr }}
+                                {{ player.current_season_mmr }}
                             </div>
                             <div class="text-black">
-                                {{ isSeasonZero ? 'Season Points' : 'Gulag Rating' }}
+                                {{ 'Gulag Rating' }}
                             </div>
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
-                            <div class="font-semibold text-purple-600">{{ player.favourite_army }}</div>
+                            <div class="font-semibold text-purple-600">{{ player.favourite_army_subfaction }}</div>
                             <div class="text-black">Favourite Army</div>
                         </div>
                     </div>
@@ -149,13 +149,13 @@ import { useRouter } from 'vue-router';
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-md">
                                 <div class="font-semibold text-purple-600 text-2xl">
-                                    {{ isSeasonZero ? selectedPlayer.points : selectedPlayer.current_season_mmr }}
+                                    {{selectedPlayer.current_season_mmr }}
                                 </div>
                                 <div class="text-black text-sm">
-                                    {{ isSeasonZero ? 'Points' : 'Gulag Rating' }}
+                                    {{'Gulag Rating' }}
                                 </div>
                             </div>
-                            <template v-if="!isSeasonZero">
+                            <template>
                                 <div class="text-center p-4 bg-yellow-50 rounded-md">
                                     <div class="font-semibold text-yellow-600 text-2xl">
                                         {{ selectedPlayer.peak_season_mmr }}
@@ -174,16 +174,30 @@ import { useRouter } from 'vue-router';
                         <h4 class="font-medium mb-2">Game Statistics</h4>
                         <div class="grid grid-cols-2 gap-2 text-sm">
                             <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.first_bloods }}</div>
-                                <div>First Bloods</div>
+                                <div class="font-semibold">{{ selectedPlayer.most_victory_points }}</div>
+                                <div>Most Victory Points</div>
+                            </div>
+                            <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
+                                <div class="font-semibold">{{ selectedPlayer.avg_victory_points }}</div>
+                                <div>Avg Victory Points</div>
+                            </div>
+                            
+                            
+                            <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
+                                <div class="font-semibold">{{ selectedPlayer.avg_primary_points }}</div>
+                                <div>Avg Primary Points</div>
                             </div>
                             <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.motms }}</div>
-                                <div>Play of the Game</div>
+                                <div class="font-semibold">{{ selectedPlayer.avg_secondary_points }}</div>
+                                <div>Avg Secondary Points</div>
                             </div>
-                            <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.jotms }}</div>
-                                <div>Fuck Ups</div>
+                            <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
+                                <div class="font-semibold">{{ selectedPlayer.biggest_stomp }} vs {{ selectedPlayer.biggest_stomp_against }}</div>
+                                <div>Highest Win Delta</div>
+                            </div>
+                            <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
+                                <div class="font-semibold">{{ selectedPlayer.largest_delta }}</div>
+                                <div>Largest Loss</div>
                             </div>
                         </div>
                     </div>
@@ -191,7 +205,7 @@ import { useRouter } from 'vue-router';
                     <div>
                         <h4 class="font-medium mb-2">Favourite Army</h4>
                         <div class="p-3 bg-gray-50 rounded-md">
-                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_army }}</div>
+                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_army_subfaction }}</div>
                         </div>
                     </div>
 
@@ -220,8 +234,8 @@ import { useRouter } from 'vue-router';
                     <canvas ref="winChart" width="400" height="250"></canvas>
                 </div>
                 <div class="card rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold mb-4">Faction Popularity</h3>
-                    <canvas ref="colourChart" width="400" height="250"></canvas>
+                    <h3 class="text-xl font-semibold mb-4">Army Popularity</h3>
+                    <canvas ref="factionChart" width="400" height="250"></canvas>
                 </div>
             </div>
 
@@ -250,18 +264,13 @@ import { useRouter } from 'vue-router';
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium ">Format</label>
-                            <p class="mt-1 text-sm ">{{ selectedMatch.format }}</p>
+                            <label class="block text-sm font-medium ">Game</label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.game_mode }}</p>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium ">Bracket</label>
-                            <p class="mt-1 text-sm ">{{ selectedMatch.bracket }}</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium ">Total Turns</label>
-                            <p class="mt-1 text-sm ">{{ selectedMatch.totalTurns }}</p>
+                        <div v-show="selectedMatch.game_mode === 'Killteam'">
+                            <label class="block text-sm font-medium ">Crit Op </label>
+                            <p class="mt-1 text-sm ">{{ selectedMatch.players[0].primary_objective }}</p>
                         </div>
                         
                         <div>
@@ -270,7 +279,7 @@ import { useRouter } from 'vue-router';
                                 <div 
                                     v-for="player in selectedMatch.players" 
                                     :key="player.id || player.user.id" 
-                                    @click="navigateToDeck(player.deck.deck_id)"
+                                    @click="navigateToArmy(player.army.army_id)"
                                     :class="[
                                         'flex items-center space-x-3 p-2 rounded transition-colors cursor-pointer',
                                         player.is_winner ? 'bg-green-100 hover:bg-green-200' : 'bg-gray-50 hover:bg-gray-100'
@@ -281,9 +290,35 @@ import { useRouter } from 'vue-router';
                                     
                                     </span>
                                     <span class="text-sm ">
-                                    {{ player.user?.name || player.name }} playing {{ player.army.army_name }} - 
-                                    <span v-show="player.is_winner" class="text-green-600">🏆 with {{ player.final_life }}hp</span>
-                                    <span v-show="!player.is_winner" class="text-red-600"> Lost on turn {{ player.turn_lost }} at {{ player.final_life }}hp</span>
+                                    {{ player.user?.name || player.name }} playing {{ player.army.subfaction }} - 
+                                    <span v-show="player.is_winner" class="text-green-600">🏆 with {{ player.victory_points }} VP</span>
+                                    <span v-show="!player.is_winner" class="text-red-600"> Lost with {{ player.victory_points }} VP</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium ">Breakdown</label>
+                            <div class="mt-2 space-y-2 text-black">
+                                <div 
+                                    v-for="player in selectedMatch.players" 
+                                    :key="player.id || player.user.id" 
+                                    @click="navigateToArmy(player.army.army_id)"
+                                    :class="[
+                                        'flex items-center space-x-3 p-2 rounded transition-colors cursor-pointer',
+                                        player.is_winner ? 'bg-green-100 hover:bg-green-200' : 'bg-gray-50 hover:bg-gray-100'
+                                        ]"
+                                >
+                                    <span class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold">
+                                    {{ getInitials(player.user?.name || player.name) }}
+                                    
+                                    </span>
+                                    <span v-show="selectedMatch.game_mode === 'Warhammer 40k'" class="text-sm ">
+                                        <span class="text-green-600">{{player.primary_points}} Primary </span><span class="text-blue-600">{{player.secondary_points}} Secondary </span><span class="text-yellow-600">{{player.tertiary_points}} Paint</span>  
+                                    </span>
+                                    <span v-show="selectedMatch.game_mode === 'Killteam'" class="text-sm ">
+                                        <span class="text-green-600">{{player.primary_points}} CritOp </span><span class="text-blue-600">{{player.secondary_points}} TacOp </span><span class="text-yellow-600">{{player.tertiary_points}} KillOp</span>  
                                     </span>
                                 </div>
                             </div>
@@ -303,7 +338,7 @@ import { useRouter } from 'vue-router';
                     <thead class="">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Format</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Game</th>
                             <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Players</th>
                             <th class="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Winner</th>
                         </tr>
@@ -313,7 +348,7 @@ import { useRouter } from 'vue-router';
                             @click="openMatchModal(match)"
                             class="cursor-pointer hover:bg-gray-500 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.date }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.format }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ">{{ match.game_mode }}</td>
                             <td class="px-6 py-4 text-sm ">
                                 <div class="flex -space-x-2">
                                     <span v-for="player in match.players" :key="player.id || player.user.id" 
@@ -348,8 +383,7 @@ export default {
             error: null,
             filters: {
                 period: 'all',
-                format: 'Gulag Commander - Season 2',
-                bracket: 'all',
+                format: 'Warhammer 40k',
                 player: 'all'
             },
             statistics: {},
@@ -366,21 +400,32 @@ export default {
             return this.statistics.player_stats.reduce((prev, current) => 
                 (prev.wins > current.wins) ? prev : current).name;
         },
-        mostMotmsPlayer() {
+        mostScorePlayer() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
                 return 'N/A';
             }
             const player = this.statistics.player_stats.reduce((prev, current) => 
-                (prev.motms > current.motms) ? prev : current);
-            return player.motms > 0 ? player.name : 'N/A';
+                (prev.avg_victory_points > current.avg_victory_points) ? prev : current);
+            return player.avg_victory_points > 0 ? player.name : 'N/A';
         },
-        mostJotmsPlayer() {
+        leastScorePlayer() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
                 return 'N/A';
             }
-            const player = this.statistics.player_stats.reduce((prev, current) => 
-                (prev.jotms > current.jotms) ? prev : current);
-            return player.jotms > 0 ? player.name : 'N/A';
+            
+            const playersWithScores = this.statistics.player_stats.filter(
+                player => player.avg_victory_points > 0
+            );
+            
+            if (playersWithScores.length === 0) {
+                return 'N/A';
+            }
+            
+            const player = playersWithScores.reduce((prev, current) => 
+                (prev.avg_victory_points < current.avg_victory_points) ? prev : current
+            );
+            
+            return player.name;
         },
         highestWinRate() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
@@ -388,11 +433,8 @@ export default {
             }
             const player = this.statistics.player_stats.reduce((prev, current) => 
                 (prev.win_rate > current.win_rate) ? prev : current);
-            return player.win_rate;
-        },
-        isSeasonZero() {
-            return this.filters.format === 'Gulag Commander - Season 0';
-        },
+            return player.name + ' - ' + player.win_rate;
+        }
     },
     mounted() {
         this.fetchStats();
@@ -542,7 +584,7 @@ export default {
         },
         initCharts() {
             if (this.winChart) this.winChart.destroy();
-            if (this.colourChart) this.colourChart.destroy();
+            if (this.factionChart) this.factionChart.destroy();
             const datasetsArray = Object.values(this.statistics.datasets);
             if (this.statistics.player_stats && this.statistics.player_stats.length > 0) {
                 const winCtx = this.$refs.winChart.getContext('2d');
@@ -570,55 +612,47 @@ export default {
                     }
                 });
             }
-            if (this.statistics.colour_distribution) {
-                const colourCtx = this.$refs.colourChart.getContext('2d');
+            if (this.statistics.faction_distribution) {
+                const colourCtx = this.$refs.factionChart.getContext('2d');
                 
-                const factionColorMap = {
+                const factionColorMap={
 
-                    "Black Templars" : 'W',
-                    "Blood Angels": 'W',
-                    "Dark Angels": 'W',
-                    "Deathwatch": 'W',
-                    "Imperial Fists": 'W',
-                    "Iron Hands": 'W',
-                    "Raven Guard": 'W',
-                    "Salamanders": 'W',
-                    "Space Marines": 'W',
-                    "Space Wolves": 'W',
-                    "Ultramarines": 'W',
-                    "White Scars": 'W',
-                    'MonoWhite': 'W',
-                    'MonoBlue': 'U', 
-                    'MonoBlack': 'B',
-                    'MonoRed': 'R',
-                    'MonoGreen': 'G',
-                    'Azorius': 'WU',
-                    'Dimir': 'UB',
-                    'Rakdos': 'BR',
-                    'Gruul': 'RG',
-                    'Selesnya': 'WG',
-                    'Orzhov': 'WB',
-                    'Izzet': 'UR',
-                    'Golgari': 'BG',
-                    'Boros': 'WR',
-                    'Simic': 'UG',
-                    'Bant': 'WUG',
-                    'Esper': 'WUB',
-                    'Grixis': 'UBR',
-                    'Jund': 'BRG',
-                    'Naya': 'WRG',
-                    'Abzan': 'WBG',
-                    'Jeskai': 'WUR',
-                    'Sultai': 'UBG',
-                    'Mardu': 'WBR',
-                    'Temur': 'URG',
-                    'Glint-Eye': 'WUBR',
-                    'Dune-Brood': 'UBRG',
-                    'Ink-Treader': 'WBRG',
-                    'Witch-Maw': 'WURG',
-                    'Yore-Tiller': 'WUBG',
-                    'Five-Color': 'WUBRG',
-                    'Colorless': 'C'
+                    "Black Templars":'W',
+                    "Blood Angels":'W',
+                    "Dark Angels":'W',
+                    "Deathwatch":'W',
+                    "Imperial Fists":'W',
+                    "Iron Hands":'W',
+                    "Raven Guard":'W',
+                    "Salamanders":'W',
+                    "Space Marines":'W',
+                    "Space Wolves":'W',
+                    "Ultramarines":'W',
+                    "White Scars":'W',
+                    "Chaos Daemons":'R',
+                    "Chaos Knights":'R',
+                    "Chaos Space Marines":'R',
+                    "Death Guard":'R',
+                    "Emperors Children":'R',
+                    "Thousand Sons":'R',
+                    "Titanicus Traitoris":'R',
+                    "World Eaters":'R',
+                    "Adepta Sororitas":'B',
+                    "Adeptus Custodes":'B',
+                    "Adeptus Mechanicus":'B',
+                    "Adeptus Titanicus":'B',
+                    "Agents of The Imperium":'B',
+                    "Astra Militarum":'B',
+                    "Grey Knights":'B',
+                    "Imperial Knights":'B',
+                    "Aeldari":'G',
+                    "Drukhari":'G',
+                    "Genestealer Cults":'G',
+                    "Leagues of Votann":'G',
+                    "Necrons":'G',
+                    "Orks":'G',
+                    "Tau Empire":'G',
+                    "Tyranids":'G'
                 };
 
                 const colorMap = {
@@ -698,8 +732,8 @@ export default {
             }
         };
 
-        const labels = Object.keys(this.statistics.colour_distribution);
-        const data = Object.values(this.statistics.colour_distribution);
+        const labels = Object.keys(this.statistics.faction_distribution);
+        const data = Object.values(this.statistics.faction_distribution);
         
         
         const tempColors = labels.map(faction => {
@@ -708,7 +742,7 @@ export default {
             return colorArray[0];
         });
         
-        this.colourChart = new Chart(colourCtx, {
+        this.factionChart = new Chart(colourCtx, {
             type: 'pie',
             data: {
                 labels: labels,
@@ -740,9 +774,9 @@ export default {
                 this.selectedMatch = null;
             }
         },
-        navigateToDeck(deckId) {
+        navigateToArmy(armyId) {
             this.selectedMatch = null;
-            window.location.href = `/deck/${deckId}`;
+            window.location.href = `/warhammer/armies/${armyId}`;
             
         }
     },

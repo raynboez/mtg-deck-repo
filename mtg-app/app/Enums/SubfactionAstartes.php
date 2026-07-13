@@ -21,5 +21,13 @@ enum SubfactionAstartes: string
     {
         return array_column(self::cases(), 'value');
     }
-
+    public static function tryFromName(string $name): ?self
+        {
+            foreach (self::cases() as $case) {
+                if ($case->name === $name) {
+                    return $case;
+                }
+            }
+            return null;
+        }
 }

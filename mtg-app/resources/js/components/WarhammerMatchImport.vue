@@ -47,6 +47,12 @@ import { X, XCircle } from 'lucide-vue-next';
                                     <option value="Loot">Loot</option>
                                     <option value="Secure">Secure</option>
                                     <option value="Transmission">Transmission</option>
+                                    <option value="Orb">Orb</option>
+                                    <option value="Stake Claim">Stake Claim</option>
+                                    <option value="Energy Cells">Energy Cells</option>
+                                    <option value="Download">Download</option>
+                                    <option value="Data">Data</option>
+                                    <option value="Reboot">Reboot</option>
                                     
                                 </select>
                             </div>

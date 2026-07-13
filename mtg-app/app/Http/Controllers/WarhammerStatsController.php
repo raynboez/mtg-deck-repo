@@ -40,7 +40,6 @@ class WarhammerStatsController extends Controller
         $matches = $query->orderBy('played_at')->get();
 
         $stats = $this->calculateStatistics($matches, $game_mode);
-
         return response()->json([
             'success' => true,
             'filters' => [
@@ -91,31 +90,21 @@ class WarhammerStatsController extends Controller
         foreach ($matches as $match) {
             $labels[] = $match->played_at->format('d-m-y H:i');
             $totalParticipants += $match->participants->count();
-            $totalTurns+=$match->total_turns;
-            $position = 0;
-            $order_lost = 0;
-            $same_order = 0;
+
+            $winnerVP = null;
+            $winnerId = null;
+            foreach ($match->participants as $participant) {
+                if ($participant->is_winner) {
+                    $winnerVP = $participant->victory_points;
+                    $winnerId = $participant->user_id;
+                    break;
+                }
+            }
+
+
             foreach ($match->participants->sortByDesc('order_lost') as $participant) {
                 
-                if($participant->is_winner){
-                    $points = $match->number_of_players;
-                }
-                else {
-                    if($participant->order_lost == $order_lost){
-                        $same_order++;
-                        $position = $position-$same_order;
-                    }
-                    
-                    $points = max(0, ($match->number_of_players - 1) - $position);
-                    
-                    
-                    $position = $position+1+$same_order;
-                    if(!$participant->order_lost == $order_lost){
-                        $same_order = 0;
-                    }
-                    $order_lost = $participant->order_lost;
-                }
-                
+                               
                 $userId = $participant->user_id;
                 $userName = $participant->user->name ?? 'Unknown';
                 if (!isset($playerStats[$userId])) {
@@ -126,10 +115,14 @@ class WarhammerStatsController extends Controller
                         'losses' => 0,
                         'total_games' => 0,
                         'armies' => [],
+                        'most_victory_points' => 0,
                         'total_victory_points' => 0,
                         'total_primary_points' => 0,
                         'total_secondary_points' => 0,
                         'total_tertiary_points' => 0,
+                        'biggest_stomp' => 0, 
+                        'biggest_stomp_against' => null,
+                        'largest_delta' => 0,
                         'points' => 0,
                         'factions' => [
                             'Astartes' => 0,
@@ -148,13 +141,32 @@ class WarhammerStatsController extends Controller
                 }
 
 
-                $playerStats[$userId]['points'] += $points;
                 $playerStats[$userId]['total_games']++;
-                $playerStats[$userId]['total_victory_points'] += $participant->victory_points;
+                $vp = $participant->victory_points;
+                $playerStats[$userId]['total_victory_points'] += $vp;
+                if($vp > $playerStats[$userId]['most_victory_points']){
+                    $playerStats[$userId]['most_victory_points'] = $vp;
+                }
                 $playerStats[$userId]['total_primary_points'] += $participant->primary_points;
                 $playerStats[$userId]['total_secondary_points'] += $participant->secondary_points;
                 $playerStats[$userId]['total_tertiary_points'] += $participant->tertiary_points;
 
+
+                if (!$participant->is_winner && $winnerVP !== null) {
+                    $delta = $winnerVP - $participant->victory_points;
+                    // Update largest delta (biggest stomp) for this player
+                    if ($delta > $playerStats[$userId]['largest_delta']) {
+                        $playerStats[$userId]['largest_delta'] = $delta;
+                    }
+                    
+                    // Also track from winner's perspective
+                    if ($delta > $playerStats[$winnerId]['biggest_stomp']) {
+                        $playerStats[$winnerId]['biggest_stomp'] = $delta;
+                        $playerStats[$winnerId]['biggest_stomp_against'] = $userName;
+                        $playerStats[$winnerId]['biggest_stomp_match_id'] = $match->match_id;
+                        $playerStats[$winnerId]['biggest_stomp_date'] = $match->played_at;
+                    }
+                }
                 if ($participant->is_winner) {
                     $playerStats[$userId]['wins']++;
                 } else {
@@ -184,20 +196,28 @@ class WarhammerStatsController extends Controller
                     $datasets[$userId]['data'][] = $participant->mmr_after;
                 }
                 if ($participant->army_id) {
+                    $armyId = $participant->army_id;
                     $armyName = $participant->army->name ?? 'Unknown Army';
-                    if (!isset($playerStats[$userId]['armies'][$armyName])) {
-                        $playerStats[$userId]['armies'][$armyName] = 0;
-                        $faction = $participant->army->faction;
-                        if(!isset($FactionDistribution[$faction])){
-                        $FactionDistribution[$faction] = 0;
+                    $armySubfaction = $participant->army->subfaction ?? 'Unknown Subfaction';
+                    $faction = $participant->army->faction;
+                    if (!isset($playerStats[$userId]['armies'][$armyId])) {
+                        $playerStats[$userId]['armies'][$armyId] = [
+                            'count' => 0,
+                            'name' => $armyName,
+                            'subfaction' => $armySubfaction,
+                            'faction' => $faction
+                        ];
+                        
+                        if(!isset($FactionDistribution[$armySubfaction])){
+                            $FactionDistribution[$armySubfaction] = 0;
+                        }
+                        $FactionDistribution[$armySubfaction]++;
                     }
-                    $FactionDistribution[$faction]++;
-                    }
-                    $playerStats[$userId]['armies'][$armyName]++;
+                    
+                    $playerStats[$userId]['armies'][$armyId]['count']++;
                     
                     $faction = $participant->army->faction;
-                    
-                    $playerStats[$userId]['factions'][$faction]++;                   
+                    $playerStats[$userId]['factions'][$faction]++;                 
                 }
             }
         }
@@ -222,10 +242,18 @@ class WarhammerStatsController extends Controller
                 : 0;
 
             if (!empty($player['armies'])) {
-                arsort($player['armies']);
-                $player['favourite_army'] = array_key_first($player['armies']);
+                uasort($player['armies'], function($a, $b) {
+                    return $b['count'] <=> $a['count'];
+                });
+                
+                $favoriteArmyData = reset($player['armies']);
+                
+                
+                $player['favourite_army'] = $favoriteArmyData['name'];
+                $player['favourite_army_subfaction'] = $favoriteArmyData['subfaction'];;
             } else {
                 $player['favourite_army'] = 'No armies played';
+                $player['favourite_army_subfaction'] = null;
             }
 
             if (!empty($player['mmr_history'])) {
@@ -306,7 +334,7 @@ class WarhammerStatsController extends Controller
                 'avg_victory_points_wh' => 0,
                 'avg_victory_points_kt' => 0,
                 'favourite_army' => 'No armies played',
-                'army_usage' => [],
+                'armies' => [],
             ];
         }
 
