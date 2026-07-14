@@ -107,7 +107,6 @@ const fetchPhotos = async () => {
     
     try {
         const response = await axios.get(`/api/warhammer/armies/${props.army.army_id}/photos`)
-        console.log(response);
         if (!response) {
             throw new Error('Failed to fetch photos')
         }
@@ -267,11 +266,44 @@ onMounted(() => {
             </div>
             
             <div v-else-if="photos.length === 0" class="empty-state">
+              <div v-if="canManagePhotos" class="upload-area">
+                  <div class="upload-container">
+                      <input 
+                          type="file" 
+                          accept="image/*" 
+                          @change="handleFileSelect"
+                          ref="fileInput"
+                          class="file-input"
+                          id="photo-upload"
+                      >
+                      <label for="photo-upload" class="upload-label">
+                          <span class="upload-icon">📸</span>
+                          <span>Choose a photo</span>
+                          <span class="upload-hint">JPG, PNG, GIF up to 5MB</span>
+                      </label>
+                      
+                      <button 
+                          v-if="selectedFile"
+                          @click="uploadPhoto"
+                          :disabled="isUploading"
+                          class="upload-btn"
+                      >
+                          {{ isUploading ? 'Uploading...' : 'Upload Photo' }}
+                      </button>
+                  </div>
+                  
+                  <!-- Upload Progress -->
+                  <div v-if="isUploading" class="progress-bar">
+                      <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
+                      <span class="progress-text">{{ uploadProgress }}%</span>
+                  </div>
+              </div>
                 <span class="empty-icon">🖼️</span>
                 <p>No photos uploaded yet</p>
                 <p v-if="canManagePhotos" class="empty-hint">
                     Upload your army photos
                 </p>
+                
             </div>
             
             <div v-else class="photo-grid">
@@ -315,38 +347,38 @@ onMounted(() => {
                     </div>
                 </div>
                 <!-- Upload Area -->
-            <div v-if="canManagePhotos" class="upload-area">
-                <div class="upload-container">
-                    <input 
-                        type="file" 
-                        accept="image/*" 
-                        @change="handleFileSelect"
-                        ref="fileInput"
-                        class="file-input"
-                        id="photo-upload"
-                    >
-                    <label for="photo-upload" class="upload-label">
-                        <span class="upload-icon">📸</span>
-                        <span>Choose a photo</span>
-                        <span class="upload-hint">JPG, PNG, GIF up to 5MB</span>
-                    </label>
-                    
-                    <button 
-                        v-if="selectedFile"
-                        @click="uploadPhoto"
-                        :disabled="isUploading"
-                        class="upload-btn"
-                    >
-                        {{ isUploading ? 'Uploading...' : 'Upload Photo' }}
-                    </button>
-                </div>
-                
-                <!-- Upload Progress -->
-                <div v-if="isUploading" class="progress-bar">
-                    <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
-                    <span class="progress-text">{{ uploadProgress }}%</span>
-                </div>
-            </div>
+              <div v-if="canManagePhotos" class="upload-area">
+                  <div class="upload-container">
+                      <input 
+                          type="file" 
+                          accept="image/*" 
+                          @change="handleFileSelect"
+                          ref="fileInput"
+                          class="file-input"
+                          id="photo-upload"
+                      >
+                      <label for="photo-upload" class="upload-label">
+                          <span class="upload-icon">📸</span>
+                          <span>Choose a photo</span>
+                          <span class="upload-hint">JPG, PNG, GIF up to 5MB</span>
+                      </label>
+                      
+                      <button 
+                          v-if="selectedFile"
+                          @click="uploadPhoto"
+                          :disabled="isUploading"
+                          class="upload-btn"
+                      >
+                          {{ isUploading ? 'Uploading...' : 'Upload Photo' }}
+                      </button>
+                  </div>
+                  
+                  <!-- Upload Progress -->
+                  <div v-if="isUploading" class="progress-bar">
+                      <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
+                      <span class="progress-text">{{ uploadProgress }}%</span>
+                  </div>
+              </div>
             </div>
             
         </div>

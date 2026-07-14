@@ -314,7 +314,7 @@ import { useRouter } from 'vue-router';
                                     
                                     </span>
                                     <span v-show="selectedMatch.game_mode === 'Warhammer 40k'" class="text-sm ">
-                                        <span class="text-green-600">{{player.primary_points}} Primary </span><span class="text-blue-600">{{player.secondary_points}} Secondary </span><span class="text-yellow-600">{{player.tertiary_points}} Paint</span>
+                                        <span class="text-green-600">{{player.primary_points}} Primary ({{ player.primary_objective }}) </span><span class="text-blue-600">{{player.secondary_points}} Secondary </span><span class="text-yellow-600">{{player.tertiary_points}} Paint</span>
                                           
                                     </span>
                                     <span v-show="selectedMatch.game_mode === 'Killteam'" class="text-sm ">
@@ -568,10 +568,8 @@ export default {
                 if (this.filters.player !== 'all') params.append('player', this.filters.player);
                 
                 const url = `/api/warhammer/stats${params.toString() ? `?${params.toString()}` : ''}`;
-                console.log(url);
                 const response = await axios.get(url);
                 this.statistics = response.data.statistics;
-                console.log(this.statistics);
                 this.loading = false;
                 this.$nextTick(() => {
                     this.initCharts();

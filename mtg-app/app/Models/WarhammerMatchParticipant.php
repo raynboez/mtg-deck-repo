@@ -54,7 +54,10 @@ class WarhammerMatchParticipant extends Model
 		'secondary_points',
 		'tertiary_points',
 		'primary_objective',
-		'secondary_objective'
+		'secondary_objective',
+		'mmr_before', 
+		'mmr_after', 
+		'mmr_change'
 	];
 
 	public function army()

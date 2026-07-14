@@ -126,7 +126,7 @@ import { X, XCircle } from 'lucide-vue-next';
                             >
                                 <option value="" disabled>{{ matchDetails.game_mode === 'Killteam' ? 'Select a Kill Team' : 'Select an Army' }}</option>
                                 <option 
-                                    v-for="army in getUserArmies(player.user_id, )" 
+                                    v-for="army in getUserArmies(player.user_id, matchDetails.game_mode)" 
                                     :key="army.army_id" 
                                     :value="army.army_id"
                                 >
@@ -358,6 +358,7 @@ import { X, XCircle } from 'lucide-vue-next';
                         user.armies = response.data.map((army) => ({
                             army_name: army.name,
                             army_id: army.army_id,
+                            game_mode: army.game_mode
                         }));
                     }
                 } 
@@ -397,14 +398,14 @@ import { X, XCircle } from 'lucide-vue-next';
                     this.fetchUserArmiesByGamemode(userId, this.matchDetails.game_mode);
                 }
             },
-            getUserArmies(userId) {
+            getUserArmies(userId, game_mode) {
                 
                 const user = this.users.find(u => Number(u.id) === Number(userId));
                 if (!user || !user.armies || !Array.isArray(user.armies)) {
                     return [];
                 }
                 
-                return user.armies;
+                return user.armies.filter(army => army.game_mode === game_mode);
             },
             addPlayer() {
                 this.players.push({
@@ -453,13 +454,11 @@ import { X, XCircle } from 'lucide-vue-next';
                             player.primary_objective = this.critop;
                         }
                     }
-                    console.log(matchData);
                     
                     const response = await axios.put('/api/warhammer/matchRecord', matchData);
                     
                     this.loading = false;
                     this.success = true;
-                    console.log('API Response:', response.data);
                     
                     setTimeout(() => {
                         this.resetForm();

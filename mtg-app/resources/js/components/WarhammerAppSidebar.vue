@@ -79,11 +79,9 @@ export default {
     
         getUserArmiesAsNavItems(userId: number): NavItem[] 
         {
-            console.log('Getting armies for userId:', userId);
         
             const user = this.users.find(u => u.id === userId);
             if (!user?.armies) return [];
-            console.log('User armies:', user.armies);
             return user.armies.map(army => ({
                 title: army.army_name,
                 href: `/warhammer/army/${army.army_id}`,

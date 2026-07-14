@@ -74,7 +74,7 @@ class WarhammerStatsController extends Controller
         $datasets = [];
         $season = Season::where('name', $game_mode)->first();
         if(isset($season)){
-            $labels[] = $season->date_started->game_mode('d-m-y H:i');
+            $labels[] = $season->date_started->format('d-m-y H:i');
         } else {
             $labels[] = "00-00-00 00:00";
         }

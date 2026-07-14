@@ -31,7 +31,6 @@ const fetchArmy = async () => {
         isLoading.value = true;
         error.value = null;
         const response = await axios.get(`/api/warhammer/armies/${props.army_id}`);
-        console.log('Army data:', response.data);
         army.value = response.data.army;
         armystats.value = response.data.armystats;
     } catch (err) {
