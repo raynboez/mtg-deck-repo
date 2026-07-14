@@ -9,6 +9,7 @@ use App\Models\Deck;
 use App\Models\Matches;
 use App\Models\WarhammerMatch;
 use App\Models\WarhammerMatchParticipant;
+use App\Models\Army;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -152,12 +153,10 @@ class WarhammerStatsController extends Controller
 
                 if (!$participant->is_winner && $winnerVP !== null) {
                     $delta = $winnerVP - $participant->victory_points;
-                    // Update largest delta (biggest stomp) for this player
                     if ($delta > $playerStats[$userId]['largest_delta']) {
                         $playerStats[$userId]['largest_delta'] = $delta;
                     }
                     
-                    // Also track from winner's perspective
                     if ($delta > $playerStats[$winnerId]['biggest_stomp']) {
                         $playerStats[$winnerId]['biggest_stomp'] = $delta;
                         $playerStats[$winnerId]['biggest_stomp_against'] = $userName;
@@ -198,12 +197,14 @@ class WarhammerStatsController extends Controller
                     $armyName = $participant->army->name ?? 'Unknown Army';
                     $armySubfaction = $participant->army->subfaction ?? 'Unknown Subfaction';
                     $faction = $participant->army->faction;
+                    $photo = $participant->army->primaryPhoto()->first()->photo_url ?? null;
                     if (!isset($playerStats[$userId]['armies'][$armyId])) {
                         $playerStats[$userId]['armies'][$armyId] = [
                             'count' => 0,
                             'name' => $armyName,
                             'subfaction' => $armySubfaction,
-                            'faction' => $faction
+                            'faction' => $faction,
+                            'photo_url' => $photo
                         ];
                         
                         if(!isset($FactionDistribution[$armySubfaction])){
@@ -246,12 +247,14 @@ class WarhammerStatsController extends Controller
                 
                 $favoriteArmyData = reset($player['armies']);
                 
-                
+                            
                 $player['favourite_army'] = $favoriteArmyData['name'];
-                $player['favourite_army_subfaction'] = $favoriteArmyData['subfaction'];;
+                $player['favourite_army_subfaction'] = $favoriteArmyData['subfaction'];
+                $player['photo_url'] = $favoriteArmyData['photo_url'];
             } else {
                 $player['favourite_army'] = 'No armies played';
                 $player['favourite_army_subfaction'] = null;
+                $player['photo_url'] = null;
             }
 
             if (!empty($player['mmr_history'])) {

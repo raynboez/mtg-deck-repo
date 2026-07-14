@@ -113,7 +113,7 @@ import { useRouter } from 'vue-router';
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favourite_army_subfaction }}</div>
-                            <div class="text-black">{{ this.filters.format === "Killteam" ? "Favourite Killteam" : "Favourite Army" }}</div>
+                            <div class="text-black">{{ filters.format === "Killteam" ? "Favourite Killteam" : "Favourite Army" }}</div>
                         </div>
                     </div>
                 </div>
@@ -168,51 +168,48 @@ import { useRouter } from 'vue-router';
                                     <div class="text-black text-sm">Lowest Gulag Rating</div>
                                 </div>
                         </div>
-                    <div>
-                        <h4 class="font-medium mb-2">Game Statistics</h4>
-                        <div class="grid grid-cols-2 gap-2 text-sm">
-                            <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.most_victory_points }}</div>
-                                <div>Most Victory Points</div>
-                            </div>
-                            <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.avg_victory_points }}</div>
-                                <div>Avg Victory Points</div>
-                            </div>
-                                                       
-                            <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.avg_primary_points }}</div>
-                                <div>{{ this.filters.format === "Killteam" ? "Avg CritOp Points" : "Avg Primary Points" }}</div>
-                            </div>
-                            <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.avg_secondary_points }}</div>
-                                <div>{{ this.filters.format === "Killteam" ? "Avg TacOp Points" : "Avg Secondary Points" }}</div>
-                            </div>
-                            <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.biggest_stomp }} vs {{ selectedPlayer.biggest_stomp_against }}</div>
-                                <div>Highest Win Delta</div>
-                            </div>
-                            <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
-                                <div class="font-semibold">{{ selectedPlayer.largest_delta }}</div>
-                                <div>Largest Loss</div>
+                        <div>
+                            <h4 class="font-medium mb-2">Game Statistics</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.most_victory_points }}</div>
+                                    <div>Most Victory Points</div>
+                                </div>
+                                <div class="text-blue-600 text-center p-2 bg-blue-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.avg_victory_points }}</div>
+                                    <div>Avg Victory Points</div>
+                                </div>
+                                                        
+                                <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.avg_primary_points }}</div>
+                                    <div>{{ filters.format === "Killteam" ? "Avg CritOp Points" : "Avg Primary Points" }}</div>
+                                </div>
+                                <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.avg_secondary_points }}</div>
+                                    <div>{{ filters.format === "Killteam" ? "Avg TacOp Points" : "Avg Secondary Points" }}</div>
+                                </div>
+                                <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.biggest_stomp }} vs {{ selectedPlayer.biggest_stomp_against }}</div>
+                                    <div>Highest Win Delta</div>
+                                </div>
+                                <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
+                                    <div class="font-semibold">{{ selectedPlayer.largest_delta }}</div>
+                                    <div>Largest Loss</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <h4 class="font-medium mb-2">Favourite Army</h4>
-                        <div class="p-3 bg-gray-50 rounded-md">
-                        <div class="text-black font-semibold">{{ selectedPlayer.favourite_army_subfaction }}</div>
+                        <div>
+                            <h4 class="font-medium mb-2">Favourite Army</h4>
+                            <div class="p-3 bg-gray-50 rounded-md">
+                            <div class="text-black font-semibold">{{ selectedPlayer.favourite_army_subfaction }}</div>
+                            </div>
                         </div>
-                    </div>
+                        <div>
+                            <img :src="selectedPlayer.photo_url" class="photo-image">
+                        </div>
 
-                    <div v-if="selectedPlayer.colours" class="mt-4">
-                        <h4 class="font-medium mb-2">Colour Usage</h4>
-                        <div class="relative h-48 w-full">
-                            <canvas :ref="'playerChart-' + selectedPlayer.user_id" 
-                                    class="w-full h-full"></canvas>
-                        </div>
-                    </div>
+                    
                     </div>
 
                     <div class="flex justify-end pt-4 mt-4 border-t border-gray-200">
@@ -523,6 +520,7 @@ export default {
         openPlayerModal(player) {
             this.closePlayerModal();
             this.selectedPlayer = player;
+            console.log(this.selectedPlayer)
             document.body.classList.add('overflow-hidden');
             this.$nextTick(() => {
                 this.renderPlayerColorChart();

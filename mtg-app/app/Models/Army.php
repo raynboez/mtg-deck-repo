@@ -72,6 +72,6 @@ class Army extends Model
 
     public function primaryPhoto()
     {
-        return $this->hasOne(ArmyPhoto::class)->where('is_primary', true);
+        return $this->hasOne(ArmyPhoto::class, 'army_id')->where('is_primary', true);
     }
 }

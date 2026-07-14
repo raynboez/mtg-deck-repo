@@ -218,4 +218,5 @@ class ArmyPhotoController extends Controller
             ], 500);
         }
     }
+    
 }
