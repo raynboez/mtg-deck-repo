@@ -155,7 +155,6 @@ import { useRouter } from 'vue-router';
                                     {{'Gulag Rating' }}
                                 </div>
                             </div>
-                            <template>
                                 <div class="text-center p-4 bg-yellow-50 rounded-md">
                                     <div class="font-semibold text-yellow-600 text-2xl">
                                         {{ selectedPlayer.peak_season_mmr }}
@@ -168,7 +167,6 @@ import { useRouter } from 'vue-router';
                                     </div>
                                     <div class="text-black text-sm">Lowest Gulag Rating</div>
                                 </div>
-                            </template>
                         </div>
                     <div>
                         <h4 class="font-medium mb-2">Game Statistics</h4>
