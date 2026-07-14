@@ -2,12 +2,30 @@
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import type { User } from '@/types';
-import { Link, router } from '@inertiajs/vue3';
-import { Ban, Folder, LogOut, Settings } from 'lucide-vue-next';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { Ban, Folder, LogOut, Settings, RefreshCw } from 'lucide-vue-next';
+import { callWithErrorHandling, computed } from 'vue';
 
 interface Props {
     user: User;
 }
+
+const page = usePage();
+const currentUrl = computed(() => new URL(page.url, window.location.origin));
+const isWarhammerMode = computed(() => currentUrl.value.pathname.startsWith('/warhammer'));
+
+const switchHref = computed(() => {
+    const url = new URL(currentUrl.value.toString());
+    const pathname = url.pathname;
+
+    if (isWarhammerMode.value) {
+        url.pathname = '/stats';
+    } else {
+        url.pathname = '/warhammer/stats';
+    }
+
+    return url.pathname + url.search;
+});
 
 const handleLogout = () => {
     router.flushAll();
@@ -22,6 +40,16 @@ defineProps<Props>();
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
+
+    <DropdownMenuSeparator />
+    <DropdownMenuGroup>
+        <DropdownMenuItem :as-child="true">
+            <Link class="block w-full" :href="switchHref" prefetch as="button">
+                <RefreshCw class="mr-2 h-4 w-4" />
+                {{ isWarhammerMode ? 'MTG Mode' : 'Warhammer Mode' }}
+            </Link>
+        </DropdownMenuItem>
+    </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
@@ -29,7 +57,6 @@ defineProps<Props>();
                 <Ban class="mr-2 h-4 w-4" />
                 Ban List
             </a>
-            
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
@@ -39,7 +66,6 @@ defineProps<Props>();
                 <Folder class="mr-2 h-4 w-4" />
                 Github Repo
             </a>
-            
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

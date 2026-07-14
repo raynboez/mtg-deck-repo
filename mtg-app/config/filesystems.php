@@ -46,6 +46,13 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'army_photos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/army-photos'),
+            'url' => env('APP_URL').'/storage/army-photos',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
 
         's3' => [
             'driver' => 's3',
