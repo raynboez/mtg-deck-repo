@@ -26,9 +26,23 @@ interface Photo {
     created_at: string
 }
 
+interface Stats {
+    global: {
+        wins: number;
+        losses: number;
+        total_games: number;
+        win_percentage: number;
+    };
+    personal: {
+        wins: number;
+        losses: number;
+        total_games: number;
+        win_percentage: number;
+    };
+}
 interface Props {
     army: Army
-    armystats: string
+    armystats: Stats
 }
 
 const props = defineProps<Props>()
@@ -42,50 +56,6 @@ const selectedFile = ref<File | null>(null)
 const uploadProgress = ref(0)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const parseStats = (stats: string) => {
-    const lines = stats.split('\n').filter(line => line.trim())
-    return {
-        armyStats: lines[0] || '',
-        personalStats: lines[1] || ''
-    }
-}
-
-const stats = computed(() => parseStats(props.armystats))
-
-const totalGames = computed(() => {
-    const match = stats.value.armyStats.match(/(\d+)/)
-    return match ? match[1] : '0'
-})
-
-const wins = computed(() => {
-    const match = stats.value.armyStats.match(/(\d+)-(\d+)/)
-    return match ? match[1] : '0'
-})
-
-const losses = computed(() => {
-    const match = stats.value.armyStats.match(/(\d+)-(\d+)/)
-    return match ? match[2] : '0'
-})
-
-const winRate = computed(() => {
-    const match = stats.value.armyStats.match(/\((\d+)%\)/)
-    return match ? match[1] : '0'
-})
-
-const personalWins = computed(() => {
-    const match = stats.value.personalStats.match(/(\d+)-(\d+)/)
-    return match ? match[1] : '0'
-})
-
-const personalLosses = computed(() => {
-    const match = stats.value.personalStats.match(/(\d+)-(\d+)/)
-    return match ? match[2] : '0'
-})
-
-const personalWinRate = computed(() => {
-    const match = stats.value.personalStats.match(/\((\d+)%\)/)
-    return match ? match[1] : '0'
-})
 const currentUserId = ref<number | null>(null);
 const fetchCurrentUser = async () => {
   try {
@@ -234,17 +204,22 @@ onMounted(() => {
                     <span class="meta-label">Faction:</span>
                     {{ props.army.faction }}
                 </span>
-                <span class="meta-item">
+                <span v-if="props.army.game_mode !== 'Killteam'" class="meta-item">
                     <span class="meta-label">Subfaction:</span>
                     {{ props.army.subfaction }}
                 </span>
-                <span class="meta-item">
-                    <span class="meta-label">Points:</span>
-                    {{ props.army.points || 'N/A' }}
+                <span v-if="props.army.game_mode !== 'Warhammer 40k'" class="meta-item">
+                  <span class="meta-label">Killteam:</span>
+                  {{ props.army.subfaction }}
+                </span>
+                <span v-if="props.army.game_mode !== 'Killteam'" class="meta-item">
+                  <span class="meta-label">Points:</span>
+                  {{ props.army.points || 'N/A' }}
                 </span>
             </div>
         </div>
-<!-- Photo Gallery Section -->
+
+        
         <div class="photo-section">
             <div class="photo-header">
                 <h2>Army Photos</h2>
@@ -253,13 +228,11 @@ onMounted(() => {
             
             
             
-            <!-- Error Display -->
             <div v-if="error" class="error-message">
                 {{ error }}
                 <button @click="error = null" class="error-close">×</button>
             </div>
             
-            <!-- Photo Grid -->
             <div v-if="isLoading" class="loading-state">
                 <div class="spinner"></div>
                 <p>Loading photos...</p>
@@ -292,7 +265,6 @@ onMounted(() => {
                       </button>
                   </div>
                   
-                  <!-- Upload Progress -->
                   <div v-if="isUploading" class="progress-bar">
                       <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
                       <span class="progress-text">{{ uploadProgress }}%</span>
@@ -321,7 +293,6 @@ onMounted(() => {
                             <span v-if="photo.is_primary" class="badge-primary">⭐</span>
                         </div>
                         
-                        <!-- Photo Actions -->
                         <div v-if="canManagePhotos" class="photo-actions">
                             <button 
                                 v-if="!photo.is_primary"
@@ -346,7 +317,6 @@ onMounted(() => {
                         </span>
                     </div>
                 </div>
-                <!-- Upload Area -->
               <div v-if="canManagePhotos" class="upload-area">
                   <div class="upload-container">
                       <input 
@@ -373,7 +343,6 @@ onMounted(() => {
                       </button>
                   </div>
                   
-                  <!-- Upload Progress -->
                   <div v-if="isUploading" class="progress-bar">
                       <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
                       <span class="progress-text">{{ uploadProgress }}%</span>
@@ -382,44 +351,43 @@ onMounted(() => {
             </div>
             
         </div>
-        <!-- Stats Section -->
+
         <div class="stats-section">
             <h2>Statistics</h2>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-value">{{ totalGames }}</div>
+                    <div class="stat-value">{{ props.armystats.global.total_games }}</div>
                     <div class="stat-label">Total Games</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ wins }}</div>
+                    <div class="stat-value">{{ props.armystats.global.wins }}</div>
                     <div class="stat-label">Wins</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ losses }}</div>
+                    <div class="stat-value">{{ props.armystats.global.losses }}</div>
                     <div class="stat-label">Losses</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">{{ winRate }}%</div>
+                    <div class="stat-value">{{ props.armystats.global.win_percentage }}%</div>
                     <div class="stat-label">Win Rate</div>
                 </div>
             </div>
 
             
             
-            <!-- Personal Stats -->
             <div class="personal-stats">
                 <h3>Personal Record</h3>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-value">{{ personalWins }}</div>
+                        <div class="stat-value">{{ props.armystats.personal.wins }}</div>
                         <div class="stat-label">Personal Wins</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ personalLosses }}</div>
+                        <div class="stat-value">{{ props.armystats.personal.losses }}</div>
                         <div class="stat-label">Personal Losses</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ personalWinRate }}%</div>
+                        <div class="stat-value">{{ props.armystats.personal.win_percentage }}%</div>
                         <div class="stat-label">Personal Win Rate</div>
                     </div>
                 </div>

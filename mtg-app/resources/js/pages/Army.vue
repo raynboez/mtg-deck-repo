@@ -7,6 +7,20 @@ import ArmyViewer from '../components/ArmyViewer.vue';
 import { type BreadcrumbItem } from '@/types';
 
 // Props
+interface Stats {
+    global: {
+        wins: number;
+        losses: number;
+        total_games: number;
+        win_percentage: number;
+    };
+    personal: {
+        wins: number;
+        losses: number;
+        total_games: number;
+        win_percentage: number;
+    };
+}
 const props = defineProps<{
     army_id: number
 }>();
@@ -32,7 +46,9 @@ const fetchArmy = async () => {
         error.value = null;
         const response = await axios.get(`/api/warhammer/armies/${props.army_id}`);
         army.value = response.data.army;
-        armystats.value = response.data.armystats;
+        armystats.value = response.data.stats;
+        console.log(army.value);
+        console.log(armystats.value);
     } catch (err) {
         error.value = 'Failed to load army data';
         console.error('Error fetching army:', err);
@@ -79,7 +95,7 @@ onMounted(() => {
             <ArmyViewer 
                 v-else-if="army && armystats"
                 :army="army"
-                :armystats="armystats"
+                :armystats=armystats
             />
         </div>
     </AppLayout>

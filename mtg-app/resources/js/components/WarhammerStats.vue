@@ -301,7 +301,6 @@ import { useRouter } from 'vue-router';
                                 <div 
                                     v-for="player in selectedMatch.players" 
                                     :key="player.id || player.user.id" 
-                                    @click="navigateToArmy(player.army.army_id)"
                                     :class="[
                                         'flex items-center space-x-3 p-2 rounded transition-colors cursor-pointer',
                                         player.is_winner ? 'bg-green-100 hover:bg-green-200' : 'bg-gray-50 hover:bg-gray-100'
@@ -815,7 +814,7 @@ export default {
         },
         navigateToArmy(armyId) {
             this.selectedMatch = null;
-            window.location.href = `/warhammer/armies/${armyId}`;
+            window.location.href = `/warhammer/army/${armyId}`;
             
         }
     },

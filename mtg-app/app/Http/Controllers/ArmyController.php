@@ -37,40 +37,64 @@ class ArmyController extends Controller
         ]);
     }
 
-    public function getArmy(Request $request, $id)
-    {
-        $user = $request->user()->user_id;
-        $army = Army::findOrFail($id);
-        $personalwins = count(DB::table('warhammer_match_participants')->where('user_id', $user)->where('army_id', $id)->where('is_winner', 1)->get());
-        $personalgames = count(DB::table('warhammer_match_participants')->where( 'user_id', $user)->where('army_id', $id)->get());
-        $personalloss = $personalgames - $personalwins;
-        try{
-        $personalpercent = number_format(($personalwins / $personalgames) * 100); 
-        }
-        catch(DivisionByZeroError){
-            $personalpercent = 0;
-        }
-        $wins = count(DB::table('warhammer_match_participants')->where('army_id', $id)->where('is_winner', 1)->get());
-        $games = count(DB::table('warhammer_match_participants')->where('army_id', $id)->get());
-        $loss = $games - $wins;
-        try{
-        $percent = number_format(($wins / $games) * 100); 
-        }
-        catch(DivisionByZeroError){
-            $percent = 0;
-        }
-
-        if($personalgames != $games){
-            $armystats = $wins . "-" . $loss . " (" . $percent . "% of $games).\nPersonal Win-Loss: " . $personalwins . "-" . $personalloss . " (" . $personalpercent . "% of $personalgames)";
-        } else {
-            $armystats = $wins . "-" . $loss . " (" . $percent . "% of $games)";
-        }
-
-        return response()->json(
-            [
-                'army' => $army,
-                'armystats' => $armystats,
-            ]
-        );
+public function getArmy(Request $request, $id)
+{
+    $user = $request->user()->user_id;
+    $army = Army::findOrFail($id);
+    
+    // Personal statistics
+    $personalwins = DB::table('warhammer_match_participants')
+        ->where('user_id', $user)
+        ->where('army_id', $id)
+        ->where('is_winner', 1)
+        ->count();
+    
+    $personalgames = DB::table('warhammer_match_participants')
+        ->where('user_id', $user)
+        ->where('army_id', $id)
+        ->count();
+    
+    $personalloss = $personalgames - $personalwins;
+    
+    try {
+        $personalpercent = number_format(($personalwins / $personalgames) * 100);
+    } catch (DivisionByZeroError) {
+        $personalpercent = 0;
     }
+    
+    $wins = DB::table('warhammer_match_participants')
+        ->where('army_id', $id)
+        ->where('is_winner', 1)
+        ->count();
+    
+    $games = DB::table('warhammer_match_participants')
+        ->where('army_id', $id)
+        ->count();
+    
+    $loss = $games - $wins;
+    
+    try {
+        $percent = number_format(($wins / $games) * 100);
+    } catch (DivisionByZeroError) {
+        $percent = 0;
+    }
+
+    return response()->json([
+        'army' => $army,
+        'stats' => [
+            'global' => [
+                'wins' => $wins,
+                'losses' => $loss,
+                'total_games' => $games,
+                'win_percentage' => (int) $percent,
+            ],
+            'personal' => [
+                'wins' => $personalwins,
+                'losses' => $personalloss,
+                'total_games' => $personalgames,
+                'win_percentage' => (int) $personalpercent,
+            ]
+        ]
+    ]);
+}
 }
