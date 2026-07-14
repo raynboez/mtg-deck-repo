@@ -9,7 +9,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\ArmyPhoto;
 /**
  * Class Army
  * 
@@ -57,11 +57,21 @@ class Army extends Model
 
 	public function user()
 	{
-		return $this->belongsTo(User::class);
+		return $this->belongsTo(User::class, 'user_id');
 	}
 
 	public function warhammer_match_participants()
 	{
 		return $this->hasMany(WarhammerMatchParticipant::class);
 	}
+
+	public function photos()
+    {
+        return $this->hasMany(ArmyPhoto::class, 'army_id');
+    }
+
+    public function primaryPhoto()
+    {
+        return $this->hasOne(ArmyPhoto::class)->where('is_primary', true);
+    }
 }

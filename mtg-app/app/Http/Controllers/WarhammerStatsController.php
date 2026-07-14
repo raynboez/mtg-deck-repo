@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\Deck;
 use App\Models\Matches;
 use App\Models\WarhammerMatch;
-use App\Models\MatchParticipant;
+use App\Models\WarhammerMatchParticipant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +22,11 @@ class WarhammerStatsController extends Controller
 
         $validated = $request->validate([
             'period' => 'sometimes|string|in:all,month,week',
-            'game_mode' => 'sometimes|string',
+            'format' => 'sometimes|string',
         ]);
 
         $period = $validated['period'] ?? 'all';
-        $game_mode = $validated['game_mode'] ?? 'all';
+        $game_mode = $validated['format'] ?? 'all';
 
         $query = WarhammerMatch::with(['participants.user', 'participants.army']);
         if ($period !== 'all') {
@@ -68,10 +68,8 @@ class WarhammerStatsController extends Controller
         $totalMatches = $matches->count();
         
         $totalParticipants = 0;
-        $totalTurns = 0;
         $playerStats = [];
-        $bracketStats = [];
-        $colourDistribution = [];
+        $FactionDistribution = [];
         $labels = [];
         $datasets = [];
         $season = Season::where('name', $game_mode)->first();

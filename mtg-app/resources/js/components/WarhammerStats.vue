@@ -40,7 +40,7 @@ import { useRouter } from 'vue-router';
                     <div>
                         <label class="block text-sm font-medium  mb-1">Format</label>
                         <select v-model="filters.format" @change="fetchStats" class="w-full p-2 border border-gray-300 rounded-md">
-                            <option class="text-black" value="all">All Formats</option>
+                            <option class="text-grey" value="all" disabled>All Formats</option>
                             <option class="text-black" value="Warhammer 40k" >Warhammer 40k</option>
                             <option class="text-black" value="Killteam" >Killteam</option>
                         </select>
@@ -113,7 +113,7 @@ import { useRouter } from 'vue-router';
                         </div>
                         <div class="text-center p-2 bg-purple-50 rounded-md">
                             <div class="font-semibold text-purple-600">{{ player.favourite_army_subfaction }}</div>
-                            <div class="text-black">Favourite Army</div>
+                            <div class="text-black">{{ this.filters.format === "Killteam" ? "Favourite Killteam" : "Favourite Army" }}</div>
                         </div>
                     </div>
                 </div>
@@ -181,15 +181,14 @@ import { useRouter } from 'vue-router';
                                 <div class="font-semibold">{{ selectedPlayer.avg_victory_points }}</div>
                                 <div>Avg Victory Points</div>
                             </div>
-                            
-                            
+                                                       
                             <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
                                 <div class="font-semibold">{{ selectedPlayer.avg_primary_points }}</div>
-                                <div>Avg Primary Points</div>
+                                <div>{{ this.filters.format === "Killteam" ? "Avg CritOp Points" : "Avg Primary Points" }}</div>
                             </div>
                             <div class="text-green-600 text-center p-2 bg-green-50 rounded-md">
                                 <div class="font-semibold">{{ selectedPlayer.avg_secondary_points }}</div>
-                                <div>Avg Secondary Points</div>
+                                <div>{{ this.filters.format === "Killteam" ? "Avg TacOp Points" : "Avg Secondary Points" }}</div>
                             </div>
                             <div class="text-red-600 text-center p-2 bg-red-50 rounded-md">
                                 <div class="font-semibold">{{ selectedPlayer.biggest_stomp }} vs {{ selectedPlayer.biggest_stomp_against }}</div>
@@ -315,10 +314,12 @@ import { useRouter } from 'vue-router';
                                     
                                     </span>
                                     <span v-show="selectedMatch.game_mode === 'Warhammer 40k'" class="text-sm ">
-                                        <span class="text-green-600">{{player.primary_points}} Primary </span><span class="text-blue-600">{{player.secondary_points}} Secondary </span><span class="text-yellow-600">{{player.tertiary_points}} Paint</span>  
+                                        <span class="text-green-600">{{player.primary_points}} Primary </span><span class="text-blue-600">{{player.secondary_points}} Secondary </span><span class="text-yellow-600">{{player.tertiary_points}} Paint</span>
+                                          
                                     </span>
                                     <span v-show="selectedMatch.game_mode === 'Killteam'" class="text-sm ">
-                                        <span class="text-green-600">{{player.primary_points}} CritOp </span><span class="text-blue-600">{{player.secondary_points}} TacOp </span><span class="text-yellow-600">{{player.tertiary_points}} KillOp</span>  
+                                        <span class="text-green-600">{{player.primary_points}} CritOp, </span><span class="text-blue-600">{{player.secondary_points}} TacOp ({{player.secondary_objective}}),  </span><span class="text-yellow-600">{{player.tertiary_points}} KillOp</span>  
+                                        
                                     </span>
                                 </div>
                             </div>
@@ -564,10 +565,10 @@ export default {
                 const params = new URLSearchParams();
                 if (this.filters.period !== 'all') params.append('period', this.filters.period);
                 if (this.filters.format !== 'all') params.append('format', this.filters.format);
-                if (this.filters.bracket !== 'all') params.append('bracket', this.filters.bracket);
                 if (this.filters.player !== 'all') params.append('player', this.filters.player);
                 
                 const url = `/api/warhammer/stats${params.toString() ? `?${params.toString()}` : ''}`;
+                console.log(url);
                 const response = await axios.get(url);
                 this.statistics = response.data.statistics;
                 console.log(this.statistics);

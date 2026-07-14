@@ -77,7 +77,6 @@
                       id="army_list"
                       v-model="form.army_link"
                       placeholder="Enter link to Army List (optional)"
-                      :required="activeTab === 'w40k'"
                     ></input>
 
 
@@ -87,7 +86,6 @@
                       id="army_list"
                       v-model="form.army_list"
                       placeholder="Enter Army List as text (optional)"
-                      :required="activeTab === 'w40k'"
                     ></textarea>  
                 </div>
 
@@ -146,12 +144,11 @@
                             {{ subfaction.label }}
                         </option>
                   </select>
-                    <label :for="form.army_list" >Team List Link</label>
+                    <label :for="form.army_link" >Team List Link</label>
                   <input
-                      id="army_list"
+                      id="army_link"
                       v-model="form.army_link"
                       placeholder="Enter link to Team List (optional)"
-                      :required="activeTab === 'kt'"
                     ></input>
                     <label :for="form.army_list">Team List</label>
                 
@@ -159,7 +156,6 @@
                       id="army_list"
                       v-model="form.army_list"
                       placeholder="Enter Team List as text (optional)"
-                      :required="activeTab === 'kt'"
                     ></textarea>  
                 </div>
             </div>

@@ -86,7 +86,7 @@ export default {
             console.log('User armies:', user.armies);
             return user.armies.map(army => ({
                 title: army.army_name,
-                href: `/armies/${army.army_id}`,
+                href: `/warhammer/army/${army.army_id}`,
                 icon: LayoutGrid,
             }));
         }
