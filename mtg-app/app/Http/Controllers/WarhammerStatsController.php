@@ -52,6 +52,132 @@ class WarhammerStatsController extends Controller
         ]);
     }
 
+
+private function calculateMatchups($matches): array
+{
+    if ($matches->isEmpty()) {
+        return [];
+    }
+
+    $matchIds = $matches->pluck('match_id')->toArray();
+    
+    $allParticipants = DB::table('warhammer_match_participants')
+        ->whereIn('match_id', $matchIds)
+        ->orderBy('match_id')
+        ->orderBy('user_id')
+        ->get();
+    
+    Log::info('All participants:', ['count' => $allParticipants->count()]);
+    
+    $groupedByMatch = $allParticipants->groupBy('match_id');
+    
+    $matchupData = [];
+    
+    foreach ($groupedByMatch as $matchId => $participants) {
+        $sorted = $participants->sortBy('user_id')->values();
+        
+        for ($i = 0; $i < $sorted->count(); $i += 2) {
+            if ($i + 1 >= $sorted->count()) break;
+            
+            $p1 = $sorted[$i];
+            $p2 = $sorted[$i + 1];
+            
+            $key = min($p1->user_id, $p2->user_id) . '_' . max($p1->user_id, $p2->user_id);
+            
+            if (!isset($matchupData[$key])) {
+                $matchupData[$key] = [
+                    'player1_id' => $p1->user_id,
+                    'player1_name' => $this->getUserName($p1->user_id),
+                    'player2_id' => $p2->user_id,
+                    'player2_name' => $this->getUserName($p2->user_id),
+                    'total_matches' => 0,
+                    'player1_wins' => 0,
+                    'player2_wins' => 0,
+                    'player1_vp_sum' => 0,
+                    'player2_vp_sum' => 0,
+                    'player1_primary_sum' => 0,
+                    'player2_primary_sum' => 0,
+                    'last_played' => null,
+                ];
+            }
+            
+            $matchupData[$key]['total_matches']++;
+            $matchupData[$key]['player1_vp_sum'] += $p1->victory_points ?? 0;
+            $matchupData[$key]['player2_vp_sum'] += $p2->victory_points ?? 0;
+            $matchupData[$key]['player1_primary_sum'] += $p1->primary_points ?? 0;
+            $matchupData[$key]['player2_primary_sum'] += $p2->primary_points ?? 0;
+            
+            if ($p1->is_winner) {
+                $matchupData[$key]['player1_wins']++;
+            } else {
+                $matchupData[$key]['player2_wins']++;
+            }
+            
+            $match = $matches->firstWhere('match_id', $matchId);
+            if ($match && (!$matchupData[$key]['last_played'] || $match->played_at > $matchupData[$key]['last_played'])) {
+                $matchupData[$key]['last_played'] = $match->played_at;
+            }
+        }
+    }
+    
+    return $this->formatMatchupData($matchupData);
+}
+
+private function getUserName($userId)
+{
+    $user = DB::table('users')->where('user_id', $userId)->first();
+    return $user->name ?? 'Unknown';
+}
+
+private function formatMatchupData($matchupData): array
+{
+    $formattedMatchups = [];
+    
+    foreach ($matchupData as $data) {
+        if ($data['total_matches'] === 0) continue;
+        
+        $p1_avg_vp = round($data['player1_vp_sum'] / $data['total_matches'], 1);
+        $p2_avg_vp = round($data['player2_vp_sum'] / $data['total_matches'], 1);
+        
+        $formattedMatchups[] = [
+            'player_id' => $data['player1_id'],
+            'player_name' => $data['player1_name'],
+            'opponent_id' => $data['player2_id'],
+            'opponent_name' => $data['player2_name'],
+            'wins' => $data['player1_wins'],
+            'losses' => $data['player2_wins'],
+            'total_matches' => $data['total_matches'],
+            'win_rate' => $data['total_matches'] > 0 
+                ? round(($data['player1_wins'] / $data['total_matches']) * 100, 1)
+                : 0,
+            'avg_victory_points' => $p1_avg_vp,
+            'avg_opponent_points' => $p2_avg_vp,
+            'last_played' => $data['last_played']?->format('Y-m-d') ?? null,
+        ];
+        
+        $formattedMatchups[] = [
+            'player_id' => $data['player2_id'],
+            'player_name' => $data['player2_name'],
+            'opponent_id' => $data['player1_id'],
+            'opponent_name' => $data['player1_name'],
+            'wins' => $data['player2_wins'],
+            'losses' => $data['player1_wins'],
+            'total_matches' => $data['total_matches'],
+            'win_rate' => $data['total_matches'] > 0 
+                ? round(($data['player2_wins'] / $data['total_matches']) * 100, 1)
+                : 0,
+            'avg_victory_points' => $p2_avg_vp,
+            'avg_opponent_points' => $p1_avg_vp,
+            'last_played' => $data['last_played']?->format('Y-m-d') ?? null,
+        ];
+    }
+    
+    usort($formattedMatchups, function($a, $b) {
+        return $b['win_rate'] <=> $a['win_rate'];
+    });
+    
+    return $formattedMatchups;
+}
     private function getDateFromPeriod(string $period): Carbon
     {
         switch ($period) {
@@ -67,7 +193,7 @@ class WarhammerStatsController extends Controller
     private function calculateStatistics($matches, $game_mode): array
     {
         $totalMatches = $matches->count();
-        
+        $matchups = $this->calculateMatchups($matches);
         $totalParticipants = 0;
         $playerStats = [];
         $FactionDistribution = [];
@@ -286,6 +412,7 @@ class WarhammerStatsController extends Controller
                     'winner' => $match->participants->where('is_winner', true)->first()->user->name ?? 'Unknown',
                 ];
             }),
+            'matchups' => $matchups,
         ];
     }
 
