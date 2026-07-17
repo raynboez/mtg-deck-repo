@@ -213,139 +213,142 @@ private function formatMatchupData($matchupData): array
             : $mmrService->getStartingMMR($season->id);
 
         foreach ($matches as $match) {
-            $labels[] = $match->played_at->format('d-m-y H:i');
-            $totalParticipants += $match->participants->count();
+    $labels[] = $match->played_at->format('d-m-y H:i');
+    $totalParticipants += $match->participants->count();
 
-            $winnerVP = null;
-            $winnerId = null;
-            foreach ($match->participants as $participant) {
-                if ($participant->is_winner) {
-                    $winnerVP = $participant->victory_points;
-                    $winnerId = $participant->user_id;
-                    break;
-                }
+    $winnerVP = null;
+    $winnerId = null;
+    foreach ($match->participants as $participant) {
+        if ($participant->is_winner) {
+            $winnerVP = $participant->victory_points;
+            $winnerId = $participant->user_id;
+            break;
+        }
+    }
+
+    // FIRST PASS: Initialize player stats for ALL participants in this match
+    foreach ($match->participants as $participant) {
+        $userId = $participant->user_id;
+        $userName = $participant->user->name ?? 'Unknown';
+
+        if (!isset($playerStats[$userId])) {
+            $playerStats[$userId] = [
+                'user_id' => $userId,
+                'name' => $userName,
+                'wins' => 0,
+                'losses' => 0,
+                'total_games' => 0,
+                'armies' => [],
+                'most_victory_points' => 0,
+                'total_victory_points' => 0,
+                'total_primary_points' => 0,
+                'total_secondary_points' => 0,
+                'total_tertiary_points' => 0,
+                'biggest_stomp' => 0, 
+                'biggest_stomp_against' => null,
+                'largest_delta' => 0,
+                'points' => 0,
+                'factions' => [
+                    'Astartes' => 0,
+                    'Chaos' => 0,
+                    'Imperium' => 0,
+                    'Xenos' => 0               
+                ],
+                'mmr_history' => [],
+            ];
+        }
+    }
+
+    foreach ($match->participants->sortByDesc('order_lost') as $participant) {
+        $userId = $participant->user_id;
+        $userName = $participant->user->name ?? 'Unknown';
+
+        if ($seasonStart && $match->played_at >= $seasonStart) {
+            if (!is_null($participant->mmr_after)) {
+                $playerStats[$userId]['mmr_history'][] = $participant->mmr_after;
+            }   
+        }
+
+        $playerStats[$userId]['total_games']++;
+        $vp = $participant->victory_points;
+        $playerStats[$userId]['total_victory_points'] += $vp;
+        if($vp > $playerStats[$userId]['most_victory_points']){
+            $playerStats[$userId]['most_victory_points'] = $vp;
+        }
+        $playerStats[$userId]['total_primary_points'] += $participant->primary_points;
+        $playerStats[$userId]['total_secondary_points'] += $participant->secondary_points;
+        $playerStats[$userId]['total_tertiary_points'] += $participant->tertiary_points;
+
+        if (!$participant->is_winner && $winnerVP !== null && $winnerId !== null) {
+            $delta = $winnerVP - $participant->victory_points;
+            if ($delta > $playerStats[$userId]['largest_delta']) {
+                $playerStats[$userId]['largest_delta'] = $delta;
             }
-
-
-            foreach ($match->participants->sortByDesc('order_lost') as $participant) {
-                
-                               
-                $userId = $participant->user_id;
-                $userName = $participant->user->name ?? 'Unknown';
-                if (!isset($playerStats[$userId])) {
-                    $playerStats[$userId] = [
-                        'user_id' => $userId,
-                        'name' => $userName,
-                        'wins' => 0,
-                        'losses' => 0,
-                        'total_games' => 0,
-                        'armies' => [],
-                        'most_victory_points' => 0,
-                        'total_victory_points' => 0,
-                        'total_primary_points' => 0,
-                        'total_secondary_points' => 0,
-                        'total_tertiary_points' => 0,
-                        'biggest_stomp' => 0, 
-                        'biggest_stomp_against' => null,
-                        'largest_delta' => 0,
-                        'points' => 0,
-                        'factions' => [
-                            'Astartes' => 0,
-                            'Chaos' => 0,
-                            'Imperium' => 0,
-                            'Xenos' => 0               
-                        ],
-                        'mmr_history' => [],
-                    ];
-                }
-
-                if ($seasonStart && $match->played_at >= $seasonStart) {
-                    if (!is_null($participant->mmr_after)) {
-                        $playerStats[$userId]['mmr_history'][] = $participant->mmr_after;
-                    }   
-                }
-
-
-                $playerStats[$userId]['total_games']++;
-                $vp = $participant->victory_points;
-                $playerStats[$userId]['total_victory_points'] += $vp;
-                if($vp > $playerStats[$userId]['most_victory_points']){
-                    $playerStats[$userId]['most_victory_points'] = $vp;
-                }
-                $playerStats[$userId]['total_primary_points'] += $participant->primary_points;
-                $playerStats[$userId]['total_secondary_points'] += $participant->secondary_points;
-                $playerStats[$userId]['total_tertiary_points'] += $participant->tertiary_points;
-
-
-                if (!$participant->is_winner && $winnerVP !== null) {
-                    $delta = $winnerVP - $participant->victory_points;
-                    if ($delta > $playerStats[$userId]['largest_delta']) {
-                        $playerStats[$userId]['largest_delta'] = $delta;
-                    }
-                    
-                    if ($delta > $playerStats[$winnerId]['biggest_stomp']) {
-                        $playerStats[$winnerId]['biggest_stomp'] = $delta;
-                        $playerStats[$winnerId]['biggest_stomp_against'] = $userName;
-                        $playerStats[$winnerId]['biggest_stomp_match_id'] = $match->match_id;
-                        $playerStats[$winnerId]['biggest_stomp_date'] = $match->played_at;
-                    }
-                }
-                if ($participant->is_winner) {
-                    $playerStats[$userId]['wins']++;
-                } else {
-                    $playerStats[$userId]['losses']++;
-                }
-
-                if (!isset($datasets[$userId])) {
-                    $datasets[$userId] = [
-                        'label' => $userName,
-                        'data' => [],
-                        'tension' => 0
-                    ];
-                    $datasets[$userId]['data'][] = $datapointPadding;
-                }
-                
-                while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
-                    if(empty($datasets[$userId]['data'])){
-                        $datasets[$userId]['data'][] = $datapointPadding;
-                    } else {
-                        $lastVal = end($datasets[$userId]['data']);
-                        $datasets[$userId]['data'][] = $lastVal;
-                    }
-                }
-                if(isset($season) && $season->id == 1 || !isset($season)){
-                    $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
-                } else {
-                    $datasets[$userId]['data'][] = $participant->mmr_after;
-                }
-                if ($participant->army_id) {
-                    $armyId = $participant->army_id;
-                    $armyName = $participant->army->name ?? 'Unknown Army';
-                    $armySubfaction = $participant->army->subfaction ?? 'Unknown Subfaction';
-                    $faction = $participant->army->faction;
-                    $photo = $participant->army->primaryPhoto()->first()->photo_url ?? null;
-                    if (!isset($playerStats[$userId]['armies'][$armyId])) {
-                        $playerStats[$userId]['armies'][$armyId] = [
-                            'count' => 0,
-                            'name' => $armyName,
-                            'subfaction' => $armySubfaction,
-                            'faction' => $faction,
-                            'photo_url' => $photo
-                        ];
-                        
-                        if(!isset($FactionDistribution[$armySubfaction])){
-                            $FactionDistribution[$armySubfaction] = 0;
-                        }
-                        $FactionDistribution[$armySubfaction]++;
-                    }
-                    
-                    $playerStats[$userId]['armies'][$armyId]['count']++;
-                    
-                    $faction = $participant->army->faction;
-                    $playerStats[$userId]['factions'][$faction]++;                 
-                }
+            
+            if ($delta > $playerStats[$winnerId]['biggest_stomp']) {
+                $playerStats[$winnerId]['biggest_stomp'] = $delta;
+                $playerStats[$winnerId]['biggest_stomp_against'] = $userName;
+                $playerStats[$winnerId]['biggest_stomp_match_id'] = $match->match_id;
+                $playerStats[$winnerId]['biggest_stomp_date'] = $match->played_at;
             }
         }
+
+        if ($participant->is_winner) {
+            $playerStats[$userId]['wins']++;
+        } else {
+            $playerStats[$userId]['losses']++;
+        }
+
+        if (!isset($datasets[$userId])) {
+            $datasets[$userId] = [
+                'label' => $userName,
+                'data' => [],
+                'tension' => 0
+            ];
+            $datasets[$userId]['data'][] = $datapointPadding;
+        }
+        
+        while(sizeof($datasets[$userId]['data']) < sizeof($labels) - 1){
+            if(empty($datasets[$userId]['data'])){
+                $datasets[$userId]['data'][] = $datapointPadding;
+            } else {
+                $lastVal = end($datasets[$userId]['data']);
+                $datasets[$userId]['data'][] = $lastVal;
+            }
+        }
+        if(isset($season) && $season->id == 1 || !isset($season)){
+            $datasets[$userId]['data'][] = $playerStats[$userId]['points'];
+        } else {
+            $datasets[$userId]['data'][] = $participant->mmr_after;
+        }
+        if ($participant->army_id) {
+            $armyId = $participant->army_id;
+            $armyName = $participant->army->name ?? 'Unknown Army';
+            $armySubfaction = $participant->army->subfaction ?? 'Unknown Subfaction';
+            $faction = $participant->army->faction;
+            $photo = $participant->army->primaryPhoto()->first()->photo_url ?? null;
+            if (!isset($playerStats[$userId]['armies'][$armyId])) {
+                $playerStats[$userId]['armies'][$armyId] = [
+                    'count' => 0,
+                    'name' => $armyName,
+                    'subfaction' => $armySubfaction,
+                    'faction' => $faction,
+                    'photo_url' => $photo
+                ];
+                
+                if(!isset($FactionDistribution[$armySubfaction])){
+                    $FactionDistribution[$armySubfaction] = 0;
+                }
+                $FactionDistribution[$armySubfaction]++;
+            }
+            
+            $playerStats[$userId]['armies'][$armyId]['count']++;
+            
+            $faction = $participant->army->faction;
+            $playerStats[$userId]['factions'][$faction]++;                 
+        }
+    }
+}
 
         foreach ($playerStats as &$player) {
             $player['win_rate'] = $player['total_games'] > 0 

@@ -35,25 +35,39 @@ export default {
         {
             try {
                 const response = await axios.get('/api/users');
-                this.users = response.data.map((user: any) => 
-                ({
-                id: user.user_id,
-                name: user.name,
-                armies: [],
+                
+                // 1. Map raw response into a temporary local array
+                const tempUsers = response.data.map((user: any) => ({
+                    id: user.user_id,
+                    name: user.name,
+                    armies: [],
                 }));
-                this.users.forEach(user => this.fetchUserArmies(user.id));
-                } catch (error) {
-                    console.error('Error fetching users:', error);
-                }
+
+                // 2. Fetch all armies in parallel using the temporary array
+                await Promise.all(
+                    tempUsers.map(user => this.fetchUserArmies(user.id, tempUsers))
+                );
+
+                // 3. Filter and assign only users who actually have armies
+                this.users = tempUsers.filter(user => user.armies && user.armies.length > 0);
+
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
         },
-        async fetchUserArmies(userId: number)
+
+        async fetchUserArmies(userId: number, targetUsersArray?: any[])
         {
             try 
             {
-                let apiReq = '/api/warhammer/armies/user/' + userId;
+                const apiReq = '/api/warhammer/armies/user/' + userId;
                 const response = await axios.get(apiReq);
-                const user = this.users.find(u => u.id === userId);
-                if(user)
+                
+                // Fallback to this.users if calling individual updates outside of initial page load
+                const arrayToSearch = targetUsersArray || this.users;
+                const user = arrayToSearch.find(u => u.id === userId);
+                
+                if (user)
                 {
                     user.armies = response.data.map((army: any) => ({
                         army_name: army.name,
@@ -63,9 +77,8 @@ export default {
             } 
             catch (error) 
             {
-                console.error('Error fetching armies:', error);
+                console.error(`Error fetching armies for user ${userId}:`, error);
             }
-
         },
         toggleUser(userId: number) 
         {
