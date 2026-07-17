@@ -226,7 +226,6 @@ private function formatMatchupData($matchupData): array
         }
     }
 
-    // FIRST PASS: Initialize player stats for ALL participants in this match
     foreach ($match->participants as $participant) {
         $userId = $participant->user_id;
         $userName = $participant->user->name ?? 'Unknown';
