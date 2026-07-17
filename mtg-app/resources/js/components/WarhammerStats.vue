@@ -232,8 +232,114 @@ import { useRouter } from 'vue-router';
                     <canvas ref="factionChart" width="400" height="250"></canvas>
                 </div>
             </div>
+            <div class="card rounded-xl shadow-md p-6 mb-12">
+                <h3 class="text-xl font-semibold mb-4">Head-to-Head Matchups</h3>
+                
+                <div v-if="selectedMatchup" class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-lg">{{ selectedMatchup.player_name }} vs {{ selectedMatchup.opponent_name }}</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                                <div>
+                                    <span class="text-sm text-gray-600">Matches</span>
+                                    <div class="font-semibold">{{ selectedMatchup.total_matches }}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Wins</span>
+                                    <div class="font-semibold text-green-600">{{ selectedMatchup.wins }}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Losses</span>
+                                    <div class="font-semibold text-red-600">{{ selectedMatchup.losses }}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Win Rate</span>
+                                    <div class="font-semibold" :class="selectedMatchup.win_rate >= 50 ? 'text-green-600' : 'text-red-600'">
+                                        {{ selectedMatchup.win_rate }}%
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Avg VP</span>
+                                    <div class="font-semibold">{{ selectedMatchup.avg_victory_points }}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Avg Opp VP</span>
+                                    <div class="font-semibold">{{ selectedMatchup.avg_opponent_points }}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Last Played</span>
+                                    <div class="font-semibold">{{ selectedMatchup.last_played }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="selectedMatchup = null" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-
+                <!-- Matrix Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider bg-gray-50 border border-gray-200" style="min-width: 100px;">
+                                    Player \ Opponent
+                                </th>
+                                <th v-for="player in matrixPlayers" 
+                                    :key="player.user_id"
+                                    class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-gray-50 border border-gray-200">
+                                    <div class="flex flex-col items-center">
+                                        <span class="h-8 w-8 rounded-full bg-blue-100 text-black text-xs flex items-center justify-center font-semibold mb-1">
+                                            {{ getInitials(player.name) }}
+                                        </span>
+                                        <span class="text-xs">{{ player.name }}</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="rowPlayer in matrixPlayers" :key="rowPlayer.user_id">
+                                <td class="px-4 py-3 text-sm font-medium border border-gray-200 bg-gray-50" style="min-width: 100px;">
+                                    <div class="flex items-center">
+                                        <span class="h-8 w-8 rounded-full bg-blue-100 text-black text-xs flex items-center justify-center font-semibold mr-2">
+                                            {{ getInitials(rowPlayer.name) }}
+                                        </span>
+                                        <span>{{ rowPlayer.name }}</span>
+                                    </div>
+                                </td>
+                                <td v-for="colPlayer in matrixPlayers" 
+                                    :key="colPlayer.user_id"
+                                    @click="handleCellClick(rowPlayer.user_id, colPlayer.user_id)"
+                                    class="px-4 py-3 text-center border border-gray-200 cursor-pointer hover:bg-blue-50 transition-colors"
+                                    :class="getCellClass(rowPlayer.user_id, colPlayer.user_id)">
+                                    <div v-if="rowPlayer.user_id === colPlayer.user_id" class="text-gray-400 text-sm">
+                                        —
+                                    </div>
+                                    <div v-else-if="getMatchup(rowPlayer.user_id, colPlayer.user_id)" class="space-y-1">
+                                        <div class="flex justify-center gap-2 text-sm">
+                                            <span class="text-green-600 font-semibold">{{ getMatchup(rowPlayer.user_id, colPlayer.user_id).wins }}</span>
+                                            <span class="text-gray-400">-</span>
+                                            <span class="text-red-600 font-semibold">{{ getMatchup(rowPlayer.user_id, colPlayer.user_id).losses }}</span>
+                                        </div>
+                                        <div class="text-xs" :class="getMatchup(rowPlayer.user_id, colPlayer.user_id).win_rate >= 50 ? 'text-green-600' : 'text-red-600'">
+                                            {{ getMatchup(rowPlayer.user_id, colPlayer.user_id).win_rate }}%
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            {{ getMatchup(rowPlayer.user_id, colPlayer.user_id).total_matches }} matches
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-gray-300 text-sm">
+                                        —
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
 
             <div v-if="selectedMatch" class="fixed inset-0 z-50">
@@ -370,6 +476,7 @@ export default {
     data() {
         return {
             selectedMatch:null,
+            selectedMatchup: null,
             selectedPlayer: null,
             playerCharts: {},
             isInitializingChart: false,
@@ -388,6 +495,10 @@ export default {
         };
     },    
     computed: {
+        matrixPlayers() {
+            if (!this.statistics.player_stats) return [];
+            return [...this.statistics.player_stats].sort((a, b) => a.name.localeCompare(b.name));
+        } ,
         mostWinsPlayer() {
             if (!this.statistics.player_stats || this.statistics.player_stats.length === 0) {
                 return 'N/A';
@@ -436,6 +547,30 @@ export default {
         document.addEventListener('keydown', this.handleKeydown);
     },
     methods: {
+        getMatchup(playerId, opponentId) {
+            if (!this.statistics.matchups) return null;
+            return this.statistics.matchups.find(
+                m => m.player_id === playerId && m.opponent_id === opponentId
+            ) || null;
+        },
+        
+        getCellClass(playerId, opponentId) {
+            if (playerId === opponentId) return 'bg-gray-50';
+            const matchup = this.getMatchup(playerId, opponentId);
+            if (!matchup) return 'hover:bg-gray-100';
+            if (matchup.win_rate > 50) return 'bg-green-50 hover:bg-green-100';
+            if (matchup.win_rate < 50) return 'bg-red-50 hover:bg-red-100';
+            return 'bg-yellow-50 hover:bg-yellow-100';
+        },
+        
+        handleCellClick(playerId, opponentId) {
+            if (playerId === opponentId) return;
+            const matchup = this.getMatchup(playerId, opponentId);
+            if (matchup) {
+                this.selectedMatchup = matchup;
+            }
+        },
+
         renderPlayerColorChart() {
         if (!this.selectedPlayer || !this.selectedPlayer.colours) return;
 
@@ -565,6 +700,7 @@ export default {
                 const url = `/api/warhammer/stats${params.toString() ? `?${params.toString()}` : ''}`;
                 const response = await axios.get(url);
                 this.statistics = response.data.statistics;
+                console.log(this.statistics);
                 this.loading = false;
                 this.$nextTick(() => {
                     this.initCharts();
