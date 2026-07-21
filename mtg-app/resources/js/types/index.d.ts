@@ -47,6 +47,7 @@ export interface Deck {
 export interface Army {
     army_name: string;
     army_id: number;
+    game_mode: string;
     href: string;
 };
 

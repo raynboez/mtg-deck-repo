@@ -12,6 +12,7 @@ import Separator from './ui/separator/Separator.vue';
 import ImportDeckButton from './ImportDeckButton.vue';
 import RecordMatchButton from './RecordMatchButton.vue';
 import StatsButton from './StatsButton.vue';
+import WarhammerNavMain from './WarhammerNavMain.vue';
 </script>
 <script lang="ts">
 
@@ -57,29 +58,45 @@ export default {
         },
 
         async fetchUserArmies(userId: number, targetUsersArray?: any[])
+{
+    try 
+    {
+        const apiReq = '/api/warhammer/armies/user/' + userId;
+        const response = await axios.get(apiReq);
+        
+        const arrayToSearch = targetUsersArray || this.users;
+        const user = arrayToSearch.find(u => u.id === userId);
+        
+        if (user)
         {
-            try 
-            {
-                const apiReq = '/api/warhammer/armies/user/' + userId;
-                const response = await axios.get(apiReq);
-                
-                // Fallback to this.users if calling individual updates outside of initial page load
-                const arrayToSearch = targetUsersArray || this.users;
-                const user = arrayToSearch.find(u => u.id === userId);
-                
-                if (user)
-                {
-                    user.armies = response.data.map((army: any) => ({
-                        army_name: army.name,
-                        army_id: army.army_id,
-                    }));
-                }
-            } 
-            catch (error) 
-            {
-                console.error(`Error fetching armies for user ${userId}:`, error);
-            }
-        },
+            user.armies = response.data.map((army: any) => ({
+                army_name: army.name,
+                army_id: army.army_id,
+                game_mode: army.game_mode // Ensure your API returns this property
+            }));
+        }
+    } 
+    catch (error) 
+    {
+        console.error(`Error fetching armies for user ${userId}:`, error);
+    }
+},
+
+// Update this method to handle the filtering
+getUserArmiesAsNavItems(userId: number, gameMode: string): NavItem[] 
+{
+    const user = this.users.find(u => u.id === userId);
+    if (!user?.armies) return [];
+    
+    // Filter by game_mode before mapping to NavItem configuration
+    return user.armies
+        .filter(army => army.game_mode === gameMode)
+        .map(army => ({
+            title: army.army_name,
+            href: `/warhammer/army/${army.army_id}`,
+            icon: LayoutGrid,
+        }));
+},
         toggleUser(userId: number) 
         {
             const index = this.expandedUsers.indexOf(userId);
@@ -90,17 +107,7 @@ export default {
             }
         },
     
-        getUserArmiesAsNavItems(userId: number): NavItem[] 
-        {
         
-            const user = this.users.find(u => u.id === userId);
-            if (!user?.armies) return [];
-            return user.armies.map(army => ({
-                title: army.army_name,
-                href: `/warhammer/army/${army.army_id}`,
-                icon: LayoutGrid,
-            }));
-        }
     },
     
     mounted() {
@@ -157,8 +164,16 @@ const footerNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <Transition name="slide">                
-                    <SidebarGroup v-if="expandedUsers.includes(user.id)" class="user-armies">
-                        <NavMain :items="getUserArmiesAsNavItems(user.id)" :username=user.name />
+                    <SidebarGroup v-if="expandedUsers.includes(user.id)" class="user-armies pl-4">
+                        
+                        <div v-if="getUserArmiesAsNavItems(user.id, 'Warhammer 40k').length > 0" class="mb-2">
+                            <WarhammerNavMain :items="getUserArmiesAsNavItems(user.id, 'Warhammer 40k')" :game_mode="'Warhammer 40k'"/>
+                        </div>
+
+                        <div v-if="getUserArmiesAsNavItems(user.id, 'Killteam').length > 0">
+                            <WarhammerNavMain :items="getUserArmiesAsNavItems(user.id, 'Killteam')" :game_mode="'Killteam'"/>
+                        </div>
+
                     </SidebarGroup>
                 </Transition>
             </div>
