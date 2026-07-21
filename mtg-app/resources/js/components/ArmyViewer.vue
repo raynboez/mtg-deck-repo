@@ -47,7 +47,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// State
 const photos = ref<Photo[]>([])
 const isLoading = ref(false)
 const isUploading = ref(false)
@@ -57,6 +56,10 @@ const uploadProgress = ref(0)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const currentUserId = ref<number | null>(null);
+const isEditing = ref(false)
+const isSaving = ref(false)
+const editedArmy = ref<Partial<Army>>({})
+
 const fetchCurrentUser = async () => {
   try {
     const response = await axios.get('/api/user/current');
@@ -71,6 +74,45 @@ const canManagePhotos = computed(() => {
     return currentUserId.value === props.army.user_id
 })
 
+const startEditing = () => {
+    editedArmy.value = {
+        name: props.army.name,
+        description: props.army.description,
+        list: props.army.list,
+        army_link: props.army.army_link
+    }
+    isEditing.value = true
+}
+
+const cancelEditing = () => {
+    isEditing.value = false
+    editedArmy.value = {}
+}
+
+const saveArmyDetails = async () => {
+    isSaving.value = true
+    error.value = null
+    try {
+        const response = await axios.put(`/api/warhammer/armies/${props.army.army_id}`, editedArmy.value)
+        
+        // Update the actual prop data dynamically if your parent updates it, 
+        // or trigger a parent refresh event if needed:
+        // emit('update:army', response.data)
+        
+        // Quick fallback: update local props reference if mutable, or rely on parent reload
+        props.army.name = editedArmy.value.name || props.army.name
+        props.army.description = editedArmy.value.description || props.army.description
+        props.army.list = editedArmy.value.list || props.army.list
+        props.army.army_link = editedArmy.value.army_link || props.army.army_link
+        
+        isEditing.value = false
+    } catch (err: any) {
+        error.value = err.response?.data?.message || 'Error updating army details'
+        console.error('Error saving details:', err)
+    } finally {
+        isSaving.value = false
+    }
+}
 const fetchPhotos = async () => {
     isLoading.value = true
     error.value = null
@@ -116,7 +158,6 @@ const uploadPhoto = async () => {
             }
         })
         
-        // Add new photo to list
         if (response.data.photo) {
             photos.value.unshift(response.data.photo)
         }
@@ -193,11 +234,21 @@ onMounted(() => {
     
         
 
-        <!-- Army Header -->
         <div class="army-header">
             <div class="army-title">
-                <h1>{{ props.army.name }}</h1>
-                <span class="army-badge">{{ props.army.game_mode }}</span>
+                <div v-if="isEditing" class="edit-title-input">
+                    <input v-model="editedArmy.name" type="text" class="form-input text-large" placeholder="Army Name" />
+                </div>
+                <h1 v-else>{{ props.army.name }}</h1>
+                
+                <div class="header-actions">
+                    <span class="army-badge">{{ props.army.game_mode }}</span>
+                    <button v-if="canManagePhotos && !isEditing" @click="startEditing" class="edit-action-btn">✏️ Edit Details</button>
+                    <div v-else-if="isEditing" class="edit-controls">
+                        <button @click="saveArmyDetails" :disabled="isSaving" class="btn-save">{{ isSaving ? 'Saving...' : 'Save' }}</button>
+                        <button @click="cancelEditing" class="btn-cancel">Cancel</button>
+                    </div>
+                </div>
             </div>
             <div class="army-meta">
                 <span class="meta-item">
@@ -288,7 +339,6 @@ onMounted(() => {
                     <div class="photo-wrapper">
                         <img :src="photo.photo_url" :alt="`Army photo ${photo.id}`" class="photo-image">
                         
-                        <!-- Photo Badges -->
                         <div class="photo-badges">
                             <span v-if="photo.is_primary" class="badge-primary">⭐</span>
                         </div>
@@ -394,27 +444,31 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- Details Section -->
         <div class="details-section">
-            <div class="detail-item">
+            <div class="detail-item full-width">
                 <span class="detail-label">Description</span>
-                <p class="detail-value">{{ props.army.description || 'No description' }}</p>
+                <textarea v-if="isEditing" v-model="editedArmy.description" rows="3" class="form-textarea" placeholder="Describe your army..."></textarea>
+                <p v-else class="detail-value">{{ props.army.description || 'No description' }}</p>
             </div>
             
-            <div class="detail-item">
+            <div class="detail-item full-width">
                 <span class="detail-label">List</span>
-                <p class="detail-value">{{ props.army.list || 'No list available' }}</p>
+                <textarea v-if="isEditing" v-model="editedArmy.list" rows="5" class="form-textarea code-font" placeholder="Paste your roster/list here..."></textarea>
+                <p v-else class="detail-value pre-wrap">{{ props.army.list || 'No list available' }}</p>
             </div>
 
             <div class="detail-item">
                 <span class="detail-label">Army Link</span>
-                <a v-if="props.army.army_link" 
-                   :href="props.army.army_link" 
-                   target="_blank" 
-                   class="detail-link">
-                    {{ props.army.army_link }}
-                </a>
-                <span v-else class="detail-value">No link</span>
+                <input v-if="isEditing" v-model="editedArmy.army_link" type="url" class="form-input" placeholder="https://..." />
+                <template v-else>
+                    <a v-if="props.army.army_link" 
+                       :href="props.army.army_link" 
+                       target="_blank" 
+                       class="detail-link">
+                        {{ props.army.army_link }}
+                    </a>
+                    <span v-else class="detail-value">No link</span>
+                </template>
             </div>
 
             <div class="detail-item">
@@ -438,7 +492,6 @@ onMounted(() => {
     gap: 24px;
 }
 
-/* Photo Section Styles */
 .photo-section {
     background: var(--color-background);
     padding: 24px;
@@ -714,7 +767,83 @@ onMounted(() => {
     color: #6b7280;
 }
 
-/* Existing styles remain the same */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.edit-action-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+.edit-action-btn:hover {
+    background: #e5e7eb;
+}
+
+.edit-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-save {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-save:hover { background: #059669; }
+
+.btn-cancel {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-cancel:hover { background: #4b5563; }
+
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.text-large {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.code-font {
+    font-family: monospace;
+}
+
+.pre-wrap {
+    white-space: pre-wrap;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+    .full-width {
+        grid-column: span 1;
+    }
+}
 .army-header {
     background: var(--color-background);
     padding: 24px;

@@ -280,7 +280,6 @@ import { useRouter } from 'vue-router';
                     </div>
                 </div>
 
-                <!-- Matrix Table -->
                 <div class="overflow-x-auto">
                     <table class="min-w-full border-collapse">
                         <thead>

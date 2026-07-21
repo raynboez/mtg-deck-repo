@@ -37,12 +37,42 @@ class ArmyController extends Controller
         ]);
     }
 
+
+public function updateArmy(Request $request, $armyId)
+{
+    $army = Army::findOrFail($armyId);
+
+    if ($army->user_id !== auth()->id()) {
+        return response()->json(['message' => 'Unauthorized Action'], 403);
+    }
+ 
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'list' => 'nullable|string',
+        'army_link' => 'nullable|url|max:255',
+    ]);
+    $updateData = [
+        'name' => $validated['name'],
+        'description' => $validated['description'],
+        'army_link' => $validated['army_link'],
+        'army_list' => $validated['list'] ?? null,
+    ];
+
+    $army->update($updateData);
+
+    return response()->json([
+        'message' => 'Army updated successfully!',
+        'army' => $army
+    ]);
+}
+
+
 public function getArmy(Request $request, $id)
 {
     $user = $request->user()->user_id;
     $army = Army::findOrFail($id);
     
-    // Personal statistics
     $personalwins = DB::table('warhammer_match_participants')
         ->where('user_id', $user)
         ->where('army_id', $id)

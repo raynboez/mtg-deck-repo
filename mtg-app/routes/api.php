@@ -55,7 +55,8 @@ Route::group(['middleware' => ['web']], function()
     Route::get('/warhammer/armies/user', [ArmyController::class, 'userArmies']);
     Route::get('/warhammer/armies/user/{userId}', [ArmyController::class, 'userArmiesById']);
     Route::get('/warhammer/armies/{armyId}', [ArmyController::class, 'getArmy']);
-
+    Route::put('/warhammer/armies/{armyId}', [ArmyController::class, 'updateArmy']);
+    
     Route::put('/warhammer/matchRecord', [WarhammerMatchController::class, 'store']);
     Route::get('/warhammer/stats', [WarhammerStatsController::class, 'index']);
     Route::get('/warhammer/stats/player/{playerId}', [WarhammerStatsController::class, 'playerStats']);
