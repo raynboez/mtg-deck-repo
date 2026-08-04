@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Army;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 class ArmyController extends Controller
 {
     public function userArmies(Request $request)
@@ -52,11 +53,12 @@ public function updateArmy(Request $request, $armyId)
         'list' => 'nullable|string',
         'army_link' => 'nullable|url|max:255',
     ]);
+    Log::info($validated);
     $updateData = [
         'name' => $validated['name'],
         'description' => $validated['description'],
         'army_link' => $validated['army_link'],
-        'army_list' => $validated['list'] ?? null,
+        'list' => $validated['list'],
     ];
 
     $army->update($updateData);

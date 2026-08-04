@@ -67,7 +67,6 @@ private function calculateMatchups($matches): array
         ->orderBy('user_id')
         ->get();
     
-    Log::info('All participants:', ['count' => $allParticipants->count()]);
     
     $groupedByMatch = $allParticipants->groupBy('match_id');
     
